@@ -1,0 +1,11 @@
+# Bỏ qua thư mục chứa thư viện nặng
+node_modules/
+backend/node_modules/
+
+# BỎ QUA KHÓA BẢO MẬT (TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA DÒNG NÀY)
+credentials.json
+backend/credentials.json
+
+# Bỏ qua các file rác của hệ điều hành
+.DS_Store
+Thumbs.db

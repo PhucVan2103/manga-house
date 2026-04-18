@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>MangaHouse - Comic & Novel Reader</title>
+    
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CẤU HÌNH TAILWIND: Ép kích hoạt Dark Mode bằng class thủ công -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ios-bg-light: #f2f2f7;
+            --ios-bg-dark: #000000;
+            --ios-card-light: #ffffff;
+            --ios-card-dark: #1c1c1e;
+            --ios-blue: #007AFF;
+            --ios-blue-active: #005bb5;
+            --ios-text-main-light: #000000;
+            --ios-text-main-dark: #ffffff;
+            --ios-text-sub-light: #8e8e93;
+            --ios-text-sub-dark: #98989d;
+            --ios-border-light: rgba(60, 60, 67, 0.1);
+            --ios-border-dark: rgba(255, 255, 255, 0.1);
+        }
+
+        body { 
+            background-color: #e5e7eb;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        body.dark {
+            background-color: #111827;
+        }
+
+        /* KHUNG IPHONE 14 PRO (HIỂN THỊ TRÊN LAPTOP) */
+        .iphone-14 {
+            width: 393px;
+            height: 852px;
+            background: var(--ios-bg-light);
+            border: 14px solid #111;
+            border-radius: 55px;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1) inset;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease;
+        }
+        .dark .iphone-14 { 
+            background: var(--ios-bg-dark); 
+            border-color: #050505;
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 125px;
+            height: 35px;
+            background: #000;
+            border-radius: 24px;
+            z-index: 1000;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.05) inset;
+        }
+
+        .screen-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            scrollbar-width: none;
+        }
+        .screen-content::-webkit-scrollbar { display: none; }
+
+        .comic-card {
+            background: var(--ios-card-light);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--ios-border-light);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .dark .comic-card { 
+            background: var(--ios-card-dark); 
+            box-shadow: none; 
+            border: 1px solid var(--ios-border-dark);
+        }
+        .comic-card:active { transform: scale(0.97); opacity: 0.9; }
+
+        .ios-input {
+            background: var(--ios-card-light);
+            border: 1px solid var(--ios-border-light);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: var(--ios-text-main-light);
+            width: 100%;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+        .dark .ios-input { 
+            background: var(--ios-card-dark); 
+            border-color: var(--ios-border-dark); 
+            color: white; 
+        }
+        .ios-input:focus { border-color: var(--ios-blue); outline: none; }
+
+        .ios-btn {
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 16px;
+            text-align: center;
+            transition: all 0.2s ease;
+            width: 100%;
+            cursor: pointer;
+        }
+        .ios-btn:active { transform: scale(0.98); }
+        .btn-blue { background: var(--ios-blue); color: white; border: none; }
+
+        .glass-header, .glass-tab-bar {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+        }
+        .dark .glass-header, .dark .glass-tab-bar {
+            background: rgba(28, 28, 30, 0.75);
+        }
+
+        /* --- TAB BAR NỔI (FLOATING PILL) --- */
+        .tab-bar {
+            position: absolute;
+            bottom: max(20px, env(safe-area-inset-bottom, 20px));
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 300px;
+            height: 52px;
+            border-radius: 26px;
+            border: 1px solid var(--ios-border-light);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .dark .tab-bar { 
+            border-color: var(--ios-border-dark); 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--ios-text-sub-light);
+            transition: all 0.2s;
+            cursor: pointer;
+            width: 48px;
+            height: 48px;
+            border-radius: 24px;
+        }
+        .dark .nav-item { color: var(--ios-text-sub-dark); }
+        .nav-item.active { color: var(--ios-blue); }
+        .nav-item:active { transform: scale(0.9); } 
+
+        .hidden-screen { display: none !important; }
+        
+        .page-header {
+            padding-top: 65px; 
+            padding-bottom: 5px;
+            padding-left: 20px;
+            padding-right: 20px;
+        }
+
+        .reader-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 365px; 
+            z-index: 1001;
+            padding: 45px 12px 10px;
+            border-bottom: 1px solid var(--ios-border-light);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+        .dark .reader-header { border-bottom-color: var(--ios-border-dark); }
+
+        .reader-bottom-controls {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 365px;
+        }
+
+        .text-ios-blue { color: var(--ios-blue); }
+
+        @media (max-width: 768px) {
+            body {
+                background-color: var(--ios-bg-light);
+            }
+            body.dark {
+                background-color: var(--ios-bg-dark);
+            }
+            .iphone-14 {
+                box-shadow: none; 
+                border: none;     
+                border-radius: 0;
+                width: 100%;
+                height: 100dvh;
+            }
+            .dynamic-island {
+                display: none; 
+            }
+            .page-header {
+                padding-top: max(50px, env(safe-area-inset-top));
+            }
+            #screen-add, #screen-details {
+                padding-top: max(50px, env(safe-area-inset-top)) !important;
+            }
+            .tab-bar {
+                bottom: max(20px, env(safe-area-inset-bottom)); 
+                padding-bottom: 0; 
+            }
+            .reader-header {
+                max-width: 100%;
+                padding-top: max(12px, env(safe-area-inset-top)); 
+            }
+            .reader-bottom-controls {
+                max-width: 100%;
+                bottom: max(40px, env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body class="light">
+
+    <div class="iphone-14">
+        <div class="dynamic-island"></div>
+
+        <div class="screen-content">
+            
+            <!-- HOME SCREEN -->
+            <div id="screen-home" class="animate-in fade-in duration-300">
+                <div class="page-header flex justify-between items-end">
+                    <div>
+                        <p class="text-[13px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Mới cập nhật</p>
+                        <h1 class="text-[34px] leading-none font-bold text-black dark:text-white tracking-tight">Thư viện <span id="count-home" class="text-[22px] text-gray-400 dark:text-gray-500 font-semibold ml-1"></span></h1>
+                    </div>
+                    <div class="flex gap-3 pb-1">
+                        <button onclick="toggleSearchBar()" class="w-9 h-9 bg-gray-200 dark:bg-[#2c2c2e] rounded-full flex items-center justify-center transition-transform active:scale-95">
+                            <svg class="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </button>
+                        <button onclick="toggleTheme()" class="w-9 h-9 bg-gray-200 dark:bg-[#2c2c2e] rounded-full flex items-center justify-center transition-transform active:scale-95">
+                            <svg id="theme-icon" class="w-4 h-4 text-gray-700 dark:text-yellow-500" fill="currentColor" viewBox="0 0 20 20"></svg>
+                        </button>
+                        <button onclick="openAddScreen()" class="w-9 h-9 bg-ios-blue text-white rounded-full flex items-center justify-center transition-transform active:scale-95 shadow-md shadow-blue-500/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- THANH CHUYỂN ĐỔI (SEGMENTED CONTROL): TRANH / CHỮ -->
+                <div class="px-5 mt-3 mb-1">
+                    <div class="bg-gray-200/80 dark:bg-[#1c1c1e] p-1 rounded-xl flex relative">
+                        <button onclick="switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[14px] font-bold shadow-sm transition-all">Truyện Tranh</button>
+                        <button onclick="switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[14px] font-bold transition-all">Truyện Chữ</button>
+                    </div>
+                </div>
+
+                <!-- THANH TÌM KIẾM -->
+                <div class="search-container px-5 overflow-hidden transition-all duration-300" style="max-height: 0; opacity: 0;">
+                    <div class="relative mt-2 mb-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <input type="text" oninput="handleSearch(event)" placeholder="Tìm kiếm tên truyện..." class="search-input w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1c1c1e] text-black dark:text-white rounded-xl text-[15px] focus:outline-none border border-gray-200 dark:border-white/10 placeholder-gray-400 dark:placeholder-gray-500 transition-colors shadow-sm">
+                    </div>
+                </div>
+
+                <div id="comic-list" class="px-5 space-y-4 pb-32 pt-2"></div>
+            </div>
+
+            <!-- FAVORITES SCREEN -->
+            <div id="screen-favorites" class="hidden-screen animate-in fade-in duration-300">
+                <div class="page-header flex justify-between items-end">
+                    <div>
+                        <p class="text-[13px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Bộ sưu tập</p>
+                        <h1 class="text-[34px] leading-none font-bold text-black dark:text-white tracking-tight">Yêu thích <span id="count-favorites" class="text-[22px] text-gray-400 dark:text-gray-500 font-semibold ml-1"></span></h1>
+                    </div>
+                    <div class="flex gap-3 pb-1">
+                        <button onclick="toggleSearchBar()" class="w-9 h-9 bg-gray-200 dark:bg-[#2c2c2e] rounded-full flex items-center justify-center transition-transform active:scale-95">
+                            <svg class="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </button>
+                        <button onclick="toggleTheme()" class="w-9 h-9 bg-gray-200 dark:bg-[#2c2c2e] rounded-full flex items-center justify-center transition-transform active:scale-95">
+                            <svg id="theme-icon" class="w-4 h-4 text-gray-700 dark:text-yellow-500 theme-icon-clone" fill="currentColor" viewBox="0 0 20 20"></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- THANH CHUYỂN ĐỔI (SEGMENTED CONTROL): TRANH / CHỮ -->
+                <div class="px-5 mt-3 mb-1">
+                    <div class="bg-gray-200/80 dark:bg-[#1c1c1e] p-1 rounded-xl flex relative">
+                        <button onclick="switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[14px] font-bold shadow-sm transition-all">Truyện Tranh</button>
+                        <button onclick="switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[14px] font-bold transition-all">Truyện Chữ</button>
+                    </div>
+                </div>
+
+                <!-- THANH TÌM KIẾM -->
+                <div class="search-container px-5 overflow-hidden transition-all duration-300" style="max-height: 0; opacity: 0;">
+                    <div class="relative mt-2 mb-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <input type="text" oninput="handleSearch(event)" placeholder="Tìm kiếm tên truyện..." class="search-input w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1c1c1e] text-black dark:text-white rounded-xl text-[15px] focus:outline-none border border-gray-200 dark:border-white/10 placeholder-gray-400 dark:placeholder-gray-500 transition-colors shadow-sm">
+                    </div>
+                </div>
+
+                <div id="comic-list-favorites" class="px-4 grid grid-cols-3 gap-3 pb-32 pt-2"></div>
+            </div>
+
+            <!-- HISTORY SCREEN -->
+            <div id="screen-history" class="hidden-screen animate-in fade-in duration-300">
+                <div class="page-header flex justify-between items-end">
+                    <div>
+                        <p class="text-[13px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Gần đây</p>
+                        <h1 class="text-[34px] leading-none font-bold text-black dark:text-white tracking-tight">Lịch sử <span id="count-history" class="text-[22px] text-gray-400 dark:text-gray-500 font-semibold ml-1"></span></h1>
+                    </div>
+                    <div class="flex gap-3 pb-1">
+                        <button onclick="toggleSearchBar()" class="w-9 h-9 bg-gray-200 dark:bg-[#2c2c2e] rounded-full flex items-center justify-center transition-transform active:scale-95">
+                            <svg class="w-4 h-4 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </button>
+                        <button onclick="toggleTheme()" class="w-9 h-9 bg-gray-200 dark:bg-[#2c2c2e] rounded-full flex items-center justify-center transition-transform active:scale-95">
+                            <svg class="w-4 h-4 text-gray-700 dark:text-yellow-500 theme-icon-clone" fill="currentColor" viewBox="0 0 20 20"></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- THANH CHUYỂN ĐỔI (SEGMENTED CONTROL): TRANH / CHỮ -->
+                <div class="px-5 mt-3 mb-1">
+                    <div class="bg-gray-200/80 dark:bg-[#1c1c1e] p-1 rounded-xl flex relative">
+                        <button onclick="switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[14px] font-bold shadow-sm transition-all">Truyện Tranh</button>
+                        <button onclick="switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[14px] font-bold transition-all">Truyện Chữ</button>
+                    </div>
+                </div>
+
+                <!-- THANH TÌM KIẾM -->
+                <div class="search-container px-5 overflow-hidden transition-all duration-300" style="max-height: 0; opacity: 0;">
+                    <div class="relative mt-2 mb-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <input type="text" oninput="handleSearch(event)" placeholder="Tìm kiếm tên truyện..." class="search-input w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1c1c1e] text-black dark:text-white rounded-xl text-[15px] focus:outline-none border border-gray-200 dark:border-white/10 placeholder-gray-400 dark:placeholder-gray-500 transition-colors shadow-sm">
+                    </div>
+                </div>
+
+                <div id="comic-list-history" class="px-4 grid grid-cols-3 gap-3 pb-32 pt-2"></div>
+            </div>
+
+            <!-- ADD/EDIT SCREEN (ĐÃ THÊM LỰA CHỌN LOẠI TRUYỆN) -->
+            <div id="screen-add" class="hidden-screen p-5 animate-in slide-in-from-bottom duration-300 h-full bg-[#f2f2f7] dark:bg-black" style="padding-top: 65px;">
+                <div class="flex items-center justify-between mb-8 mt-4">
+                    <button onclick="showScreen(currentTabId)" class="text-ios-blue flex items-center gap-1 font-medium text-[17px] active:opacity-70">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        Trở lại
+                    </button>
+                </div>
+                <h2 id="screen-add-title" class="text-[34px] leading-tight font-bold text-black dark:text-white tracking-tight mb-6">Thêm truyện</h2>
+                <div class="space-y-4 bg-white dark:bg-[#1c1c1e] p-1 rounded-2xl border border-gray-100 dark:border-white/5">
+                    
+                    <!-- LỰA CHỌN THỂ LOẠI: TRANH HAY CHỮ -->
+                    <div class="px-4 py-3 border-b border-gray-100 dark:border-white/10">
+                        <p class="text-[13px] text-gray-500 dark:text-gray-400 mb-2.5 font-bold uppercase tracking-wider">Định dạng</p>
+                        <div class="flex gap-8">
+                            <label class="flex items-center gap-2.5 text-[15px] font-semibold text-black dark:text-white cursor-pointer">
+                                <input type="radio" name="add-type" value="comic" checked class="w-4 h-4 text-ios-blue accent-blue-500"> Truyện Tranh
+                            </label>
+                            <label class="flex items-center gap-2.5 text-[15px] font-semibold text-black dark:text-white cursor-pointer">
+                                <input type="radio" name="add-type" value="novel" class="w-4 h-4 text-ios-blue accent-blue-500"> Truyện Chữ
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="px-4 py-1 border-b border-gray-100 dark:border-white/10">
+                        <input id="add-name" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" placeholder="Tên truyện">
+                    </div>
+                    <div class="px-4 py-1 border-b border-gray-100 dark:border-white/10">
+                        <input id="add-url" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" placeholder="Link chương (VD: NetTruyen)">
+                    </div>
+                    <div class="px-4 py-1 border-b border-gray-100 dark:border-white/10">
+                        <input id="add-genre" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" placeholder="Tác giả / Thể loại">
+                    </div>
+                    <div class="px-4 py-1">
+                        <input id="add-cover" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none" placeholder="Link ảnh bìa">
+                    </div>
+                </div>
+                <div class="pt-8">
+                    <button id="btn-save-comic" onclick="saveNewComic()" class="ios-btn btn-blue shadow-lg shadow-blue-500/30">Lưu vào Thư viện</button>
+                </div>
+            </div>
+
+            <!-- MÀN HÌNH CHI TIẾT TRUYỆN MỚI (DETAILS SCREEN) -->
+            <div id="screen-details" class="hidden-screen h-full bg-black relative animate-in slide-in-from-right duration-300 overflow-hidden">
+                
+                <!-- 1. FULL BACKGROUND IMAGE VỚI HIỆU ỨNG KÍNH MỜ -->
+                <div class="absolute inset-0 z-0">
+                    <!-- Tăng opacity lên 80% để ảnh nền hiện rõ hơn -->
+                    <img id="detail-bg" src="" class="w-full h-full object-cover opacity-80 scale-105">
+                    <!-- Lớp phủ Gradient: Giảm độ nhòe (blur) xuống 3px để ảnh nét hơn nữa -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/70 to-black/10 backdrop-blur-[3px]"></div>
+                </div>
+
+                <!-- 2. HEADER NỔI XUYÊN THẤU -->
+                <div class="absolute top-0 w-full z-50 px-4 py-3 flex items-center justify-between" style="padding-top: max(16px, env(safe-area-inset-top));">
+                    <button onclick="showScreen(currentTabId)" class="bg-black/30 backdrop-blur-md border border-white/10 text-white flex items-center gap-1 font-medium text-[15px] px-3 py-1.5 rounded-full active:scale-95 transition-transform shadow-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        Trở lại
+                    </button>
+                    <div class="flex gap-2.5">
+                        <button id="btn-detail-fav" onclick="" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-gray-300 active:scale-95 transition-transform shadow-lg">
+                            <svg class="w-5 h-5" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        </button>
+                        <button id="btn-detail-edit" onclick="" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white active:scale-95 transition-transform shadow-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </button>
+                        <!-- NÚT XÓA MỚI -->
+                        <button id="btn-detail-delete" onclick="" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-red-500 active:scale-95 transition-transform shadow-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. NỘI DUNG CHÍNH (CÓ THỂ CUỘN LÊN XUỐNG CÙNG ẢNH BÌA) -->
+                <div class="relative z-10 h-full overflow-y-auto px-5 pb-12 flex flex-col pt-20">
+                    <div class="flex flex-col items-center pt-2">
+                        <!-- Ảnh bìa hiển thị chính giữa -->
+                        <img id="detail-cover" class="w-64 h-96 object-cover rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-white/20 mb-6" src="">
+                        
+                        <!-- Thông tin -->
+                        <h2 id="detail-title" class="text-[26px] font-extrabold text-center text-white leading-tight mb-2 px-2 drop-shadow-md"></h2>
+                        <p id="detail-genre" class="text-[14px] font-medium text-gray-300 mb-7 text-center px-4 drop-shadow-md"></p>
+
+                        <!-- 4. NÚT ĐỌC THU GỌN LẠI -->
+                        <div class="flex gap-3 w-full mb-8 max-w-[320px]">
+                            <button id="btn-read-first" class="flex-1 bg-white/10 backdrop-blur-lg border border-white/20 text-white font-bold py-2.5 rounded-xl active:scale-95 transition-transform shadow-md text-[14px]">Đọc từ đầu</button>
+                            <button id="btn-read-continue" class="flex-1 bg-[#eab308] text-black font-bold py-2.5 rounded-xl active:scale-95 transition-transform shadow-[0_0_20px_rgba(234,179,8,0.3)] text-[14px]">Đọc tiếp</button>
+                        </div>
+
+                        <!-- 5. DANH SÁCH CHƯƠNG BẰNG KÍNH MỜ -->
+                        <div class="w-full text-left max-w-[320px]">
+                            <h3 class="text-[15px] font-bold text-gray-300 uppercase tracking-wider mb-3 ml-1 drop-shadow-md">Thông tin & Tiến trình</h3>
+                            <div id="detail-chapter-list" class="bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                                <!-- Các mốc chương sẽ được tạo tự động qua JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- READER SCREEN -->
+            <div id="screen-reader" class="hidden-screen h-full bg-black relative">
+                <div id="reader-header" class="reader-header glass-header flex items-center justify-between" style="transform: translateY(-100%); opacity: 0; pointer-events: none;">
+                    <button onclick="showScreen(currentTabId); event.stopPropagation();" class="w-8 h-8 rounded-full bg-gray-200/60 dark:bg-white/10 flex items-center justify-center text-ios-blue active:scale-95 transition-transform">
+                        <svg class="w-5 h-5 pr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <div class="text-center truncate flex-1 px-3">
+                        <h3 id="reader-title" class="text-[14px] font-semibold text-black dark:text-white truncate">Tên truyện</h3>
+                        <p id="reader-chapter" class="text-[11px] text-[#8e8e93] font-medium mt-0.5">Đang tải...</p>
+                    </div>
+                    <button onclick="scrollToTop(); event.stopPropagation();" class="w-8 h-8 rounded-full bg-gray-200/60 dark:bg-white/10 flex items-center justify-center text-ios-blue active:scale-95 transition-transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                    </button>
+                </div>
+
+                <div class="pb-10 min-h-screen cursor-pointer" id="reader-content" onclick="toggleReaderControls()">
+                    <div id="loader" class="flex flex-col items-center justify-center mt-32 hidden">
+                        <div class="w-10 h-10 border-4 border-gray-600 border-t-[#eab308] rounded-full animate-spin"></div>
+                    </div>
+                    <div id="image-container" class="bg-black flex flex-col w-full"></div>
+                </div>
+
+                <div id="reader-bottom-controls" class="reader-bottom-controls flex items-center justify-center gap-3 px-4 z-[1001] transition-all duration-300" style="transform: translateY(2rem); opacity: 0; pointer-events: none;">
+                    <button onclick="changeChapter(-1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-[var(--ios-card-light)] dark:bg-[var(--ios-card-dark)] backdrop-blur-md border-2 border-gray-400 dark:border-gray-500 text-[var(--ios-text-main-light)] dark:text-[var(--ios-text-main-dark)] flex-shrink-0 flex items-center justify-center shadow-2xl active:scale-95 transition-transform">
+                        <svg class="w-6 h-6 pr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    
+                    <button onclick="promptJumpChapter(event);" class="h-12 px-5 rounded-full bg-[var(--ios-card-light)] dark:bg-[var(--ios-card-dark)] backdrop-blur-md border-2 border-gray-400 dark:border-gray-500 text-[var(--ios-text-main-light)] dark:text-[var(--ios-text-main-dark)] flex-1 max-w-[180px] flex items-center justify-center shadow-2xl active:scale-95 transition-transform overflow-hidden">
+                        <span id="bottom-chapter-label" class="text-[14px] font-bold truncate w-full text-center">Đang tải...</span>
+                    </button>
+
+                    <button onclick="changeChapter(1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-[#eab308] backdrop-blur-md text-black flex-shrink-0 flex items-center justify-center shadow-2xl shadow-yellow-500/30 active:scale-95 transition-transform border-2 border-[#eab308]">
+                        <svg class="w-6 h-6 pl-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+            </div>
+            
+        </div> <!-- Đóng screen-content -->
+
+        <!-- TAB BAR CHỈ HIỂN THỊ ICON -->
+        <nav class="tab-bar glass-tab-bar" id="main-tab-bar">
+            <button id="tab-home" onclick="showScreen('home')" class="nav-item active text-ios-blue">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM6 6v12h12V6H6zm3 3a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1z"/></svg>
+            </button>
+            <button id="tab-favorites" onclick="showScreen('favorites')" class="nav-item">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
+            </button>
+            <button id="tab-history" onclick="showScreen('history')" class="nav-item">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13a1 1 0 10-2 0v5.586l-2.707 2.707a1 1 0 001.414 1.414l3-3A1 1 0 0013 13V7z" clip-rule="evenodd"/></svg>
+            </button>
+        </nav>
+
+        <!-- JUMP CHAPTER MODAL -->
+        <div id="jump-modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+            <div class="modal-content w-[80%] max-w-[320px] bg-[var(--ios-card-light)] dark:bg-[var(--ios-card-dark)] rounded-2xl p-5 shadow-2xl transform scale-95 transition-all duration-300 border border-[var(--ios-border-light)] dark:border-[var(--ios-border-dark)]">
+                <h3 class="text-[17px] font-bold text-center text-black dark:text-white mb-2">Chuyển chương</h3>
+                <p class="text-[13px] text-center text-gray-500 dark:text-gray-400 mb-4">Nhập số chương bạn muốn chuyển tới:</p>
+                <div class="mb-5">
+                    <input id="jump-input" type="number" inputmode="decimal" onkeydown="if(event.key === 'Enter') confirmJumpModal()" class="w-full bg-[#f2f2f7] dark:bg-[#000000] text-black dark:text-white rounded-xl px-3 py-3 text-center text-[18px] font-bold focus:outline-none focus:ring-2 focus:ring-[#eab308] border border-transparent dark:border-[var(--ios-border-dark)] placeholder-gray-400 dark:placeholder-gray-500" placeholder="VD: 173">
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeJumpModal()" class="flex-1 py-2.5 rounded-xl bg-gray-200 dark:bg-[#2c2c2e] text-black dark:text-white font-semibold text-[15px] active:scale-95 transition-transform">Hủy</button>
+                    <button onclick="confirmJumpModal()" class="flex-1 py-2.5 rounded-xl bg-[#eab308] text-black font-bold text-[15px] active:scale-95 transition-transform shadow-md shadow-yellow-500/20">Đồng ý</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- XÓA TRUYỆN MODAL -->
+        <div id="delete-modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+            <div class="modal-content w-[80%] max-w-[320px] bg-[var(--ios-card-light)] dark:bg-[var(--ios-card-dark)] rounded-2xl p-5 shadow-2xl transform scale-95 transition-all duration-300 border border-[var(--ios-border-light)] dark:border-[var(--ios-border-dark)]">
+                <h3 class="text-[17px] font-bold text-center text-black dark:text-white mb-2">Xóa Truyện</h3>
+                <p class="text-[13px] text-center text-gray-500 dark:text-gray-400 mb-5">Bạn có chắc chắn muốn xóa truyện này khỏi thiết bị không?</p>
+                <div class="flex gap-3">
+                    <button onclick="closeDeleteModal()" class="flex-1 py-2.5 rounded-xl bg-gray-200 dark:bg-[#2c2c2e] text-black dark:text-white font-semibold text-[15px] active:scale-95 transition-transform">Hủy</button>
+                    <button onclick="confirmDeleteComic()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold text-[15px] active:scale-95 transition-transform shadow-md shadow-red-500/20">Xóa</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- THÔNG BÁO (ALERT) MODAL -->
+        <div id="alert-modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[3000] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+            <div class="modal-content w-[80%] max-w-[320px] bg-[var(--ios-card-light)] dark:bg-[var(--ios-card-dark)] rounded-2xl p-5 shadow-2xl transform scale-95 transition-all duration-300 border border-[var(--ios-border-light)] dark:border-[var(--ios-border-dark)] flex flex-col items-center">
+                <div class="w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 flex items-center justify-center mb-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="text-[17px] font-bold text-center text-black dark:text-white mb-2">Thông báo</h3>
+                <p id="alert-message" class="text-[14px] text-center text-gray-500 dark:text-gray-400 mb-5 whitespace-pre-line"></p>
+                <button onclick="closeAlertModal()" class="w-full py-2.5 rounded-xl bg-[#eab308] text-black font-bold text-[15px] active:scale-95 transition-transform shadow-md shadow-yellow-500/20">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT GIAO DIỆN VÀ FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Tích hợp API tương đối để hoạt động hoàn hảo với Ngrok/Cloud
+        let API_ENDPOINT = '/api/scrape-chapter';
+        if (window.location.protocol.startsWith('blob') || window.location.protocol.startsWith('data')) {
+            API_ENDPOINT = 'http://localhost:3000/api/scrape-chapter';
+        }
+        
+        let currentUrl = "";
+        let nextChapterUrl = "";
+        let prevChapterUrl = "";
+        let isDarkMode = localStorage.getItem('theme') !== 'light'; 
+        let isControlsVisible = false;
+        let lastScrollTop = 0;
+        let searchQuery = ""; // Biến lưu trữ từ khóa tìm kiếm
+        let isUpdateChecked = false; // Cờ theo dõi việc quét cập nhật hàng ngày
+        
+        // Mặc định khởi động là Truyện Tranh
+        window.currentType = localStorage.getItem('comicType') || 'comic'; 
+
+        let currentUser = null;
+        let unsubscribeComics = null;
+        let myComics = []; 
+        let db = null;
+        let safeAppId = 'mangahouse';
+
+        window.currentTabId = 'home';
+        window.currentComicId = null;
+        let editingComicId = null;
+        let comicIdToDelete = null; 
+
+        // HÀM HIỂN THỊ THÔNG BÁO TÙY CHỈNH
+        window.showAppAlert = function(msg) {
+            document.getElementById('alert-message').innerText = msg;
+            const modal = document.getElementById('alert-modal');
+            const content = modal.querySelector('.modal-content');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        };
+
+        window.closeAlertModal = function() {
+            const modal = document.getElementById('alert-modal');
+            const content = modal.querySelector('.modal-content');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+        };
+
+        // --- CƠ CHẾ QUÉT CẬP NHẬT TRUYỆN MỚI HÀNG NGÀY ---
+        window.checkDailyUpdates = async function() {
+            const now = new Date();
+            const vnTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+            const todayStr = vnTime.getFullYear() + '-' + vnTime.getMonth() + '-' + vnTime.getDate();
+            const lastSync = localStorage.getItem('lastSyncDate');
+
+            if (lastSync === todayStr) return; 
+
+            console.log("Bắt đầu quét truyện có chương mới...");
+            let updatedCount = 0;
+
+            for (let comic of myComics) {
+                if (comic.type === 'novel') continue; 
+                
+                let targetUrl = comic.lastReadUrl || comic.url;
+                try {
+                    let res = await fetch(`${API_ENDPOINT}?url=${encodeURIComponent(targetUrl)}`, {
+                        headers: { 'ngrok-skip-browser-warning': 'true' }
+                    });
+                    let data = await res.json();
+                    
+                    let hasNext = false;
+                    if (data.success) {
+                        let nUrl = data.next_chapter || "";
+                        if (nUrl && nUrl !== '#' && !nUrl.includes('javascript:')) {
+                            hasNext = true;
+                        }
+                    }
+
+                    if (hasNext && !comic.hasNewChapter) {
+                        const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comic.id);
+                        await updateDoc(comicDoc, { hasNewChapter: true });
+                        updatedCount++;
+                    } 
+                    else if (!hasNext && comic.hasNewChapter) {
+                        const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comic.id);
+                        await updateDoc(comicDoc, { hasNewChapter: false });
+                    }
+                } catch(e) { 
+                    if (!window.location.protocol.includes('blob')) {
+                        console.error("Lỗi quét update:", e); 
+                    } else {
+                        console.log("Lỗi quét update (Có thể do chưa bật Server Ngrok):", e.message);
+                    }
+                }
+                
+                await new Promise(r => setTimeout(r, 2000));
+            }
+            
+            localStorage.setItem('lastSyncDate', todayStr);
+            if (updatedCount > 0) {
+                console.log(`Hoàn tất quét: Tìm thấy ${updatedCount} truyện có chương mới!`);
+            }
+        };
+
+        // XỬ LÝ CHUYỂN ĐỔI TRUYỆN TRANH / CHỮ
+        window.switchType = function(type) {
+            window.currentType = type;
+            localStorage.setItem('comicType', type);
+            
+            const activeClass = "flex-1 py-1.5 rounded-lg text-[14px] font-bold bg-white dark:bg-[#2c2c2e] shadow-sm text-black dark:text-white transition-all";
+            const inactiveClass = "flex-1 py-1.5 rounded-lg text-[14px] font-bold text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white transition-all";
+            
+            document.querySelectorAll('.type-toggle-comic').forEach(btn => {
+                btn.className = `type-toggle-comic ${type === 'comic' ? activeClass : inactiveClass}`;
+            });
+            document.querySelectorAll('.type-toggle-novel').forEach(btn => {
+                btn.className = `type-toggle-novel ${type === 'novel' ? activeClass : inactiveClass}`;
+            });
+            
+            searchQuery = "";
+            document.querySelectorAll('.search-container').forEach(c => { c.style.maxHeight = '0px'; c.style.opacity = '0'; });
+            document.querySelectorAll('.search-input').forEach(i => i.value = '');
+
+            if (window.currentTabId === 'home') window.renderComicList();
+            if (window.currentTabId === 'favorites') window.renderFavoritesList();
+            if (window.currentTabId === 'history') window.renderHistoryList();
+        };
+
+        window.toggleReaderControls = function() {
+            isControlsVisible = !isControlsVisible;
+            window.updateControlsVisibility();
+        };
+
+        window.updateControlsVisibility = function() {
+            const header = document.getElementById('reader-header');
+            const bottomControls = document.getElementById('reader-bottom-controls');
+            
+            if (!header || !bottomControls) return;
+
+            if (isControlsVisible) {
+                header.style.transform = 'translateY(0)';
+                header.style.opacity = '1';
+                header.style.pointerEvents = 'auto';
+                bottomControls.style.transform = 'translateY(0)';
+                bottomControls.style.opacity = '1';
+                bottomControls.style.pointerEvents = 'auto';
+            } else {
+                header.style.transform = 'translateY(-100%)';
+                header.style.opacity = '0';
+                header.style.pointerEvents = 'none';
+                bottomControls.style.transform = 'translateY(2rem)';
+                bottomControls.style.opacity = '0';
+                bottomControls.style.pointerEvents = 'none';
+            }
+        };
+
+        const screenContentNode = document.querySelector('.screen-content');
+        if(screenContentNode) {
+            screenContentNode.addEventListener('scroll', (e) => {
+                const readerScreen = document.getElementById('screen-reader');
+                if (!readerScreen || readerScreen.classList.contains('hidden-screen')) return;
+                
+                let st = e.target.scrollTop;
+                if (st > lastScrollTop && st > 20) {
+                    if (isControlsVisible) {
+                        isControlsVisible = false;
+                        window.updateControlsVisibility();
+                    }
+                }
+                lastScrollTop = st;
+            });
+        }
+
+        window.updateThemeUI = function() {
+            const body = document.body;
+            const icons = document.querySelectorAll('#theme-icon, .theme-icon-clone');
+            
+            if (isDarkMode) {
+                body.classList.add('dark');
+                icons.forEach(i => i.innerHTML = '<path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />');
+            } else {
+                body.classList.remove('dark');
+                icons.forEach(i => i.innerHTML = '<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />');
+            }
+        };
+
+        window.toggleTheme = function() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+            window.updateThemeUI();
+        };
+
+        // --- HÀM MỞ MÀN HÌNH CHI TIẾT TRUYỆN ---
+        window.openComicDetails = function(comicId) {
+            window.currentComicId = comicId;
+            const comic = myComics.find(c => c.id === comicId);
+            if (!comic) return;
+
+            const coverUrl = comic.cover || 'https://via.placeholder.com/300x450';
+            document.getElementById('detail-cover').src = coverUrl;
+            document.getElementById('detail-bg').src = coverUrl;
+            
+            document.getElementById('detail-title').innerText = comic.name;
+            document.getElementById('detail-genre').innerText = comic.genre || 'Chưa cập nhật';
+
+            const btnFirst = document.getElementById('btn-read-first');
+            const btnContinue = document.getElementById('btn-read-continue');
+
+            btnFirst.onclick = () => window.openComic(comic.url, comic.name.replace(/'/g, "\\'"), comic.id);
+            
+            const continueUrl = comic.lastReadUrl || comic.url;
+            btnContinue.onclick = () => window.openComic(continueUrl, comic.name.replace(/'/g, "\\'"), comic.id);
+
+            const btnFav = document.getElementById('btn-detail-fav');
+            btnFav.innerHTML = comic.isFavorite 
+                ? `<svg class="w-5 h-5 text-red-500" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`
+                : `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
+            
+            btnFav.onclick = (e) => window.toggleFavorite(e, comic.id);
+
+            const btnEdit = document.getElementById('btn-detail-edit');
+            btnEdit.onclick = (e) => window.openEditScreen(e, comic.id);
+
+            const btnDelete = document.getElementById('btn-detail-delete');
+            btnDelete.onclick = (e) => window.deleteComic(e, comic.id);
+
+            const chapListContainer = document.getElementById('detail-chapter-list');
+            let chapHtml = '';
+
+            chapHtml += `
+                <div class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between active:bg-white/10 cursor-pointer transition-colors" onclick="window.openComic('${comic.url}', '${comic.name.replace(/'/g, "\\'")}', '${comic.id}')">
+                    <div class="flex flex-col">
+                        <span class="text-[15px] font-bold text-white">Chương bắt đầu</span>
+                        <span class="text-[12px] text-gray-400 font-medium">Link gốc đã lưu</span>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            `;
+
+            if (comic.lastReadChapter && comic.lastReadUrl && comic.lastReadUrl !== comic.url) {
+                chapHtml += `
+                    <div class="px-5 py-3.5 flex items-center justify-between active:bg-white/10 cursor-pointer transition-colors" onclick="window.openComic('${comic.lastReadUrl}', '${comic.name.replace(/'/g, "\\'")}', '${comic.id}')">
+                        <div class="flex flex-col">
+                            <span class="text-[15px] font-bold text-[#eab308] block">${comic.lastReadChapter}</span>
+                            <span class="text-[12px] text-gray-400 font-medium">Đang đọc dở</span>
+                        </div>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                `;
+            }
+
+            chapListContainer.innerHTML = chapHtml;
+            window.showScreen('details');
+        };
+
+        // --- HÀM MỞ MÀN HÌNH TRÌNH ĐỌC (READER) ---
+        window.openComic = async function(url, name, comicId) {
+            const comic = myComics.find(c => c.id === comicId);
+            const type = comic ? (comic.type || 'comic') : 'comic';
+
+            // XỬ LÝ CHO TRUYỆN CHỮ
+            if (type === 'novel') {
+                if (comicId && db) {
+                    try {
+                        const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comicId);
+                        await updateDoc(comicDoc, { lastReadUrl: url, lastReadAt: Date.now() });
+                    } catch(e) {}
+                }
+                window.showAppAlert("Bạn đang mở Truyện Chữ.\nTính năng bóc tách văn bản đang được phát triển nên tạm thời sẽ mở trực tiếp trên trình duyệt gốc nhé!");
+                window.open(url, '_blank');
+                return;
+            }
+
+            // XỬ LÝ CHO TRUYỆN TRANH
+            currentUrl = url;
+            if (comicId) window.currentComicId = comicId;
+
+            document.getElementById('reader-title').innerText = name;
+            document.getElementById('reader-chapter').innerText = "Đang tải...";
+            document.getElementById('bottom-chapter-label').innerText = "Đang tải..."; 
+            window.showScreen('reader');
+            
+            isControlsVisible = false;
+            window.updateControlsVisibility();
+
+            const container = document.getElementById('image-container');
+            const loader = document.getElementById('loader');
+            if(!container || !loader) return;
+            
+            container.innerHTML = '';
+            loader.classList.remove('hidden');
+            document.querySelector('.screen-content').scrollTo(0,0);
+
+            try {
+                const res = await fetch(`${API_ENDPOINT}?url=${encodeURIComponent(url)}`, {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                const data = await res.json();
+                loader.classList.add('hidden');
+
+                if (data.success) {
+                    nextChapterUrl = data.next_chapter || "";
+                    prevChapterUrl = data.prev_chapter || "";
+
+                    if (data.chapter_name && (data.chapter_name.includes('404') || data.chapter_name.toLowerCase().includes('không tìm thấy'))) {
+                        document.getElementById('reader-chapter').innerText = "Chương không tồn tại";
+                        document.getElementById('bottom-chapter-label').innerText = "Lỗi chương";
+                        container.innerHTML = `<div class="p-8 text-center mt-20"><p class="text-red-500 font-bold mb-2">CHƯƠNG NÀY BỊ LỖI HOẶC KHÔNG TỒN TẠI</p></div>`;
+                        return;
+                    }
+
+                    if (data.images && data.images.length > 0) {
+                        document.getElementById('reader-chapter').innerText = data.chapter_name;
+                        document.getElementById('bottom-chapter-label').innerText = data.chapter_name; 
+                        
+                        if (window.currentComicId && db) {
+                            try {
+                                let hasNext = false;
+                                if (data.next_chapter && data.next_chapter !== '#' && !data.next_chapter.includes('javascript:')) {
+                                    hasNext = true;
+                                }
+
+                                const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', window.currentComicId);
+                                await updateDoc(comicDoc, {
+                                    lastReadUrl: url,
+                                    lastReadChapter: data.chapter_name,
+                                    lastReadAt: Date.now(),
+                                    hasNewChapter: hasNext 
+                                });
+                            } catch(e) { console.error("Lỗi cập nhật lịch sử:", e); }
+                        }
+
+                        data.images.forEach(src => {
+                            const img = document.createElement('img');
+                            img.src = src;
+                            img.className = 'w-full block min-h-[250px] bg-[#050505]';
+                            img.loading = 'lazy';
+                            img.onerror = function() { 
+                                this.onerror = null;
+                                this.src = 'https://via.placeholder.com/400x600/1c1c1e/ef4444?text=Lỗi+tải+ảnh+từ+Proxy'; 
+                                this.classList.add('opacity-70');
+                            };
+                            container.appendChild(img);
+                        });
+                    } else {
+                        document.getElementById('reader-chapter').innerText = "Không tìm thấy nội dung";
+                        document.getElementById('bottom-chapter-label').innerText = "Trống";
+                    }
+                } else {
+                    document.getElementById('reader-chapter').innerText = "Tải thất bại";
+                    document.getElementById('bottom-chapter-label').innerText = "Lỗi";
+                    container.innerHTML = `
+                        <div class="p-8 text-center mt-20 flex flex-col items-center justify-center">
+                            <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <p class="text-red-500 font-bold mb-2">LỖI LẤY DỮ LIỆU</p>
+                            <p class="text-[13px] text-gray-400 mb-6 text-center max-w-[250px]">${data.error || 'Nguồn truyện phản hồi quá chậm hoặc bị lỗi.'}</p>
+                            <button onclick="window.openComic('${url}', '${name.replace(/'/g, "\\'")}', '${comicId}')" class="px-6 py-2.5 bg-[#eab308] text-black rounded-xl font-bold active:scale-95 transition-transform shadow-md shadow-yellow-500/20">Thử lại ngay</button>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                loader.classList.add('hidden');
+                document.getElementById('reader-chapter').innerText = "Lỗi kết nối Server";
+                document.getElementById('bottom-chapter-label').innerText = "Mất kết nối";
+                container.innerHTML = `
+                    <div class="p-8 text-center mt-20 flex flex-col items-center justify-center">
+                        <svg class="w-16 h-16 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <p class="text-gray-400 font-bold mb-2">MẤT KẾT NỐI SERVER</p>
+                        <p class="text-[13px] text-gray-500 mb-6 text-center max-w-[250px]">Không thể kết nối đến máy chủ Node.js của bạn. Hãy kiểm tra lại kết nối mạng hoặc Ngrok.</p>
+                        <button onclick="window.openComic('${url}', '${name.replace(/'/g, "\\'")}', '${comicId}')" class="px-6 py-2.5 bg-gray-700 text-white rounded-xl font-bold active:scale-95 transition-transform">Thử lại ngay</button>
+                    </div>
+                `;
+            }
+        };
+
+        window.generateComicCardHTML = function(comic) {
+            const isFav = comic.isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-400';
+            const fillFav = comic.isFavorite ? 'currentColor' : 'none';
+            const targetUrl = comic.lastReadUrl || comic.url;
+            
+            const newBadge = comic.hasNewChapter 
+                ? `<span class="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-md ml-2 align-middle transform -translate-y-0.5 inline-block animate-pulse">NEW</span>` 
+                : '';
+            
+            const progressHtml = comic.lastReadChapter 
+                ? `
+                <div class="mt-2 mb-3">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-[13px] font-bold text-[#eab308] truncate max-w-full" title="${comic.lastReadChapter}">${comic.lastReadChapter}</span>
+                    </div>
+                    <div class="w-full h-1 bg-gray-200 dark:bg-[#333] rounded-full overflow-hidden">
+                        <div class="h-full bg-[#eab308] w-[60%] rounded-full"></div>
+                    </div>
+                </div>
+                `
+                : `
+                <div class="mt-2 mb-3">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-[13px] font-bold text-gray-500 dark:text-gray-400">Chưa đọc</span>
+                    </div>
+                    <div class="w-full h-1 bg-gray-200 dark:bg-[#333] rounded-full overflow-hidden">
+                        <div class="h-full bg-gray-500 w-[0%] rounded-full"></div>
+                    </div>
+                </div>
+                `;
+
+            return `
+                <div class="comic-card p-3.5 flex gap-4 relative overflow-hidden bg-white dark:bg-[#18181a] rounded-2xl border border-gray-100 dark:border-white/5">
+                    <div class="w-[105px] h-[150px] flex-shrink-0 cursor-pointer relative z-0" onclick="window.openComicDetails('${comic.id}')">
+                        <img src="${comic.cover || 'https://via.placeholder.com/200x300?text=No+Cover'}" class="w-full h-full object-cover rounded-xl shadow-md border border-black/5 dark:border-white/5">
+                    </div>
+                    <div class="flex flex-col flex-1 py-0.5 relative z-0 min-w-0">
+                        <div class="pr-8 cursor-pointer" onclick="window.openComicDetails('${comic.id}')">
+                            <h3 class="font-bold text-[16px] text-black dark:text-white leading-tight mb-1.5 truncate">${comic.name}${newBadge}</h3>
+                            <p class="text-[13px] text-gray-500 dark:text-gray-400 font-medium truncate">${comic.genre}</p>
+                        </div>
+                        
+                        <div class="mt-auto flex flex-col w-full min-w-0">
+                            ${progressHtml}
+                            <button onclick="window.openComic('${targetUrl}', '${comic.name.replace(/'/g, "\\'")}', '${comic.id}')" class="w-full py-2.5 bg-[#eab308] hover:bg-[#ca8a04] text-black font-extrabold uppercase text-[12px] tracking-widest rounded-lg transition-colors active:scale-95 shadow-sm">
+                                ${comic.lastReadChapter ? 'ĐỌC TIẾP' : 'BẮT ĐẦU ĐỌC'}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute top-3 right-3 flex flex-col gap-2.5 z-10 items-center">
+                        <button onclick="window.toggleFavorite(event, '${comic.id}')" class="transition-colors ${isFav}">
+                            <svg class="w-5 h-5" fill="${fillFav}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        window.generateGridComicCardHTML = function(comic, isFavTab) {
+            const targetUrl = comic.lastReadUrl || comic.url;
+            const chapterText = comic.lastReadChapter ? comic.lastReadChapter : 'Chưa đọc';
+
+            const newBadge = comic.hasNewChapter
+                ? `<div class="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded shadow-lg animate-pulse z-10">NEW</div>`
+                : '';
+
+            const actionBtn = isFavTab 
+                ? `<button onclick="window.toggleFavorite(event, '${comic.id}')" class="absolute top-1.5 right-1.5 w-7 h-7 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 active:scale-95"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></button>`
+                : `<button onclick="window.deleteComic(event, '${comic.id}')" class="absolute top-1.5 right-1.5 w-7 h-7 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-gray-300 hover:text-red-500 active:scale-95"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>`;
+
+            return `
+                <div class="relative flex flex-col gap-1.5 cursor-pointer group" onclick="window.openComicDetails('${comic.id}')">
+                    <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-sm border border-gray-200 dark:border-white/10 bg-gray-200 dark:bg-[#1c1c1e]">
+                        <img src="${comic.cover || 'https://via.placeholder.com/200x300?text=No+Cover'}" class="w-full h-full object-cover">
+                        ${actionBtn}
+                        ${newBadge}
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-2 pt-8">
+                            <span class="text-[11px] font-bold text-[#eab308] line-clamp-1">${chapterText}</span>
+                        </div>
+                    </div>
+                    <h3 class="text-[13px] font-bold text-black dark:text-white line-clamp-2 leading-tight px-0.5">${comic.name}</h3>
+                </div>
+            `;
+        };
+
+        window.showScreen = function(id) {
+            if (['home', 'favorites', 'history'].includes(id)) window.currentTabId = id;
+
+            searchQuery = "";
+            document.querySelectorAll('.search-container').forEach(c => {
+                c.style.maxHeight = '0px';
+                c.style.opacity = '0';
+            });
+            document.querySelectorAll('.search-input').forEach(i => i.value = '');
+
+            document.querySelectorAll('.screen-content > div').forEach(div => div.classList.add('hidden-screen'));
+            
+            const targetScreen = document.getElementById(`screen-${id}`);
+            if (targetScreen) targetScreen.classList.remove('hidden-screen');
+            
+            const tabBar = document.getElementById('main-tab-bar');
+            if (id === 'reader' || id === 'add' || id === 'details') {
+                if (tabBar) tabBar.style.display = 'none';
+            } else {
+                if (tabBar) tabBar.style.display = 'flex';
+                ['home', 'favorites', 'history'].forEach(tab => {
+                    const el = document.getElementById(`tab-${tab}`);
+                    if (el) {
+                        el.classList.remove('active', 'text-ios-blue');
+                        if (tab === id) el.classList.add('active', 'text-ios-blue');
+                    }
+                });
+            }
+
+            if(id === 'home') window.renderComicList();
+            if(id === 'favorites') window.renderFavoritesList();
+            if(id === 'history') window.renderHistoryList();
+        };
+
+        window.toggleSearchBar = function() {
+            const screen = document.getElementById(`screen-${window.currentTabId}`);
+            if (!screen) return;
+            
+            const container = screen.querySelector('.search-container');
+            const input = screen.querySelector('.search-input');
+            if (!container || !input) return;
+
+            if (container.style.maxHeight === '0px' || container.style.maxHeight === '') {
+                container.style.maxHeight = '60px'; 
+                container.style.opacity = '1';
+                setTimeout(() => input.focus(), 300);
+            } else {
+                container.style.maxHeight = '0px';
+                container.style.opacity = '0';
+                input.value = "";
+                searchQuery = "";
+                
+                if (window.currentTabId === 'home') window.renderComicList();
+                if (window.currentTabId === 'favorites') window.renderFavoritesList();
+                if (window.currentTabId === 'history') window.renderHistoryList();
+            }
+        };
+
+        window.handleSearch = function(e) {
+            searchQuery = e.target.value.toLowerCase().trim();
+            if (window.currentTabId === 'home') window.renderComicList();
+            if (window.currentTabId === 'favorites') window.renderFavoritesList();
+            if (window.currentTabId === 'history') window.renderHistoryList();
+        };
+
+        window.scrollToTop = function() {
+            document.querySelector('.screen-content').scrollTo({top: 0, behavior: 'smooth'});
+        };
+
+        window.renderComicList = function() {
+            const list = document.getElementById('comic-list');
+            const countSpan = document.getElementById('count-home');
+            if (!list) return;
+            
+            if (!db) {
+                if(countSpan) countSpan.innerText = '';
+                list.innerHTML = `<div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-80 px-6 text-center"><p class="text-[16px] text-black dark:text-white font-bold mb-2">Chưa kết nối Đám mây!</p></div>`;
+                return;
+            }
+            
+            let baseComics = myComics.filter(c => (c.type || 'comic') === window.currentType);
+            let filteredComics = baseComics;
+            
+            if (searchQuery !== "") {
+                filteredComics = baseComics.filter(c => c.name.toLowerCase().includes(searchQuery));
+            }
+
+            if(countSpan) countSpan.innerText = filteredComics.length > 0 ? `(${filteredComics.length})` : '';
+
+            if (filteredComics.length === 0) {
+                const label = window.currentType === 'comic' ? 'Truyện Tranh' : 'Truyện Chữ';
+                if (searchQuery !== "") {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-60"><p class="text-sm text-black dark:text-white font-medium text-center">Không tìm thấy ${label.toLowerCase()} nào.</p></div>`;
+                } else {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-60"><p class="text-sm text-black dark:text-white font-medium text-center">Thư viện ${label.toLowerCase()} trống!</p></div>`;
+                }
+                return;
+            }
+            list.innerHTML = filteredComics.map(c => window.generateComicCardHTML(c)).join('');
+        };
+
+        window.renderFavoritesList = function() {
+            const list = document.getElementById('comic-list-favorites');
+            const countSpan = document.getElementById('count-favorites');
+            if (!list || !db) return;
+            
+            let favs = [...myComics].filter(c => c.isFavorite && (c.type || 'comic') === window.currentType);
+
+            if (searchQuery !== "") {
+                favs = favs.filter(c => c.name.toLowerCase().includes(searchQuery));
+            }
+            
+            favs.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            if(countSpan) countSpan.innerText = favs.length > 0 ? `(${favs.length})` : '';
+
+            if (favs.length === 0) {
+                list.className = 'px-5 space-y-4 pb-32 pt-2';
+                const label = window.currentType === 'comic' ? 'Truyện Tranh' : 'Truyện Chữ';
+                if (searchQuery !== "") {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-60"><p class="text-sm text-black dark:text-white font-medium text-center">Không tìm thấy ${label.toLowerCase()} nào.</p></div>`;
+                } else {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-60"><p class="text-sm text-black dark:text-white font-medium text-center">Bạn chưa thả tim bộ ${label.toLowerCase()} nào.</p></div>`;
+                }
+                return;
+            }
+            list.className = 'px-4 grid grid-cols-3 gap-3 pb-32 pt-2';
+            list.innerHTML = favs.map(c => window.generateGridComicCardHTML(c, true)).join('');
+        };
+
+        window.renderHistoryList = function() {
+            const list = document.getElementById('comic-list-history');
+            const countSpan = document.getElementById('count-history');
+            if (!list || !db) return;
+            
+            let history = [...myComics].filter(c => c.lastReadAt && (c.type || 'comic') === window.currentType);
+
+            if (searchQuery !== "") {
+                history = history.filter(c => c.name.toLowerCase().includes(searchQuery));
+            }
+            
+            history.sort((a, b) => Number(b.lastReadAt) - Number(a.lastReadAt));
+
+            if(countSpan) countSpan.innerText = history.length > 0 ? `(${history.length})` : '';
+
+            if (history.length === 0) {
+                list.className = 'px-5 space-y-4 pb-32 pt-2';
+                const label = window.currentType === 'comic' ? 'Truyện Tranh' : 'Truyện Chữ';
+                if (searchQuery !== "") {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-60"><p class="text-sm text-black dark:text-white font-medium text-center">Không tìm thấy ${label.toLowerCase()} nào.</p></div>`;
+                } else {
+                    list.innerHTML = `<div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-60"><p class="text-sm text-black dark:text-white font-medium text-center">Chưa có lịch sử đọc ${label.toLowerCase()}.</p></div>`;
+                }
+                return;
+            }
+            list.className = 'px-4 grid grid-cols-3 gap-3 pb-32 pt-2'; 
+            list.innerHTML = history.map(c => window.generateGridComicCardHTML(c, false)).join('');
+        };
+
+        window.toggleFavorite = async function(e, comicId) {
+            e.stopPropagation();
+            const comic = myComics.find(c => c.id === comicId);
+            if (!comic || !db) return;
+            try {
+                const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comicId);
+                await updateDoc(comicDoc, { isFavorite: !comic.isFavorite });
+                
+                const detailFavBtn = document.getElementById('btn-detail-fav');
+                if (!document.getElementById('screen-details').classList.contains('hidden-screen') && window.currentComicId === comicId) {
+                    if (!comic.isFavorite) { 
+                        detailFavBtn.innerHTML = `<svg class="w-5 h-5 text-red-500" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
+                    } else {
+                        detailFavBtn.innerHTML = `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
+                    }
+                }
+            } catch (error) { console.error("Lỗi Favorite:", error); }
+        };
+
+        window.openAddScreen = function() {
+            editingComicId = null;
+            document.getElementById('add-name').value = '';
+            document.getElementById('add-url').value = '';
+            document.getElementById('add-genre').value = '';
+            document.getElementById('add-cover').value = '';
+            
+            document.querySelector(`input[name="add-type"][value="${window.currentType}"]`).checked = true;
+
+            document.getElementById('screen-add-title').innerText = "Thêm truyện";
+            document.getElementById('btn-save-comic').innerText = "Lưu vào Thư viện";
+            window.showScreen('add');
+        };
+
+        window.openEditScreen = function(e, comicId) {
+            e.stopPropagation(); 
+            const comic = myComics.find(c => c.id === comicId);
+            if (!comic) return;
+            
+            document.getElementById('add-name').value = comic.name || '';
+            document.getElementById('add-url').value = comic.url || '';
+            document.getElementById('add-genre').value = comic.genre || '';
+            document.getElementById('add-cover').value = comic.cover || '';
+            
+            const type = comic.type || 'comic';
+            const radio = document.querySelector(`input[name="add-type"][value="${type}"]`);
+            if (radio) radio.checked = true;
+
+            editingComicId = comicId;
+            document.getElementById('screen-add-title').innerText = "Sửa thông tin";
+            document.getElementById('btn-save-comic').innerText = "Lưu thay đổi";
+            window.showScreen('add');
+        };
+
+        window.saveNewComic = async function() {
+            if (!db || !currentUser) return window.showAppAlert("Đang kết nối đám mây, vui lòng đợi...");
+            const name = document.getElementById('add-name').value;
+            const url = document.getElementById('add-url').value;
+            const genre = document.getElementById('add-genre').value || 'Chưa phân loại';
+            const cover = document.getElementById('add-cover').value;
+            
+            const type = document.querySelector('input[name="add-type"]:checked').value;
+
+            if(!name || !url) return window.showAppAlert("Vui lòng điền đủ Tên và Link truyện!");
+
+            try {
+                if (editingComicId) {
+                    const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', editingComicId);
+                    await updateDoc(comicDoc, { name, url, genre, cover, type });
+                } else {
+                    const newComic = { name, url, genre, cover, type, createdAt: Date.now() };
+                    const comicsRef = collection(db, 'artifacts', safeAppId, 'public', 'data', 'comics');
+                    await addDoc(comicsRef, newComic);
+                }
+                editingComicId = null;
+                
+                window.switchType(type); 
+                window.showScreen(window.currentTabId);
+                
+            } catch (error) { 
+                console.error("Lỗi:", error); 
+                window.showAppAlert("Lưu thất bại, vui lòng thử lại!");
+            }
+        };
+
+        window.deleteComic = function(e, docId) {
+            e.stopPropagation(); 
+            comicIdToDelete = docId;
+            const modal = document.getElementById('delete-modal');
+            const content = modal.querySelector('.modal-content');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        };
+
+        window.closeDeleteModal = function() {
+            comicIdToDelete = null;
+            const modal = document.getElementById('delete-modal');
+            const content = modal.querySelector('.modal-content');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+        };
+
+        window.confirmDeleteComic = async function() {
+            if(!currentUser || !db || !comicIdToDelete) return;
+            try {
+                const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comicIdToDelete);
+                await deleteDoc(comicDoc);
+                window.closeDeleteModal(); 
+                if (!document.getElementById('screen-details').classList.contains('hidden-screen')) {
+                    window.showScreen(window.currentTabId);
+                }
+            } catch (error) { 
+                console.error("Lỗi xóa truyện:", error); 
+                window.showAppAlert("Không thể xóa truyện, vui lòng thử lại!");
+            }
+        };
+
+        window.openComicDetails = function(comicId) {
+            window.currentComicId = comicId;
+            const comic = myComics.find(c => c.id === comicId);
+            if (!comic) return;
+
+            const coverUrl = comic.cover || 'https://via.placeholder.com/300x450';
+            document.getElementById('detail-cover').src = coverUrl;
+            document.getElementById('detail-bg').src = coverUrl;
+            
+            document.getElementById('detail-title').innerText = comic.name;
+            document.getElementById('detail-genre').innerText = comic.genre || 'Chưa cập nhật';
+
+            const btnFirst = document.getElementById('btn-read-first');
+            const btnContinue = document.getElementById('btn-read-continue');
+
+            btnFirst.onclick = () => window.openComic(comic.url, comic.name.replace(/'/g, "\\'"), comic.id);
+            
+            const continueUrl = comic.lastReadUrl || comic.url;
+            btnContinue.onclick = () => window.openComic(continueUrl, comic.name.replace(/'/g, "\\'"), comic.id);
+
+            const btnFav = document.getElementById('btn-detail-fav');
+            btnFav.innerHTML = comic.isFavorite 
+                ? `<svg class="w-5 h-5 text-red-500" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`
+                : `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`;
+            
+            btnFav.onclick = (e) => window.toggleFavorite(e, comic.id);
+
+            const btnEdit = document.getElementById('btn-detail-edit');
+            btnEdit.onclick = (e) => window.openEditScreen(e, comic.id);
+
+            const btnDelete = document.getElementById('btn-detail-delete');
+            btnDelete.onclick = (e) => window.deleteComic(e, comic.id);
+
+            const chapListContainer = document.getElementById('detail-chapter-list');
+            let chapHtml = '';
+
+            chapHtml += `
+                <div class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between active:bg-white/10 cursor-pointer transition-colors" onclick="window.openComic('${comic.url}', '${comic.name.replace(/'/g, "\\'")}', '${comic.id}')">
+                    <div class="flex flex-col">
+                        <span class="text-[15px] font-bold text-white">Chương bắt đầu</span>
+                        <span class="text-[12px] text-gray-400 font-medium">Link gốc đã lưu</span>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            `;
+
+            if (comic.lastReadChapter && comic.lastReadUrl && comic.lastReadUrl !== comic.url) {
+                chapHtml += `
+                    <div class="px-5 py-3.5 flex items-center justify-between active:bg-white/10 cursor-pointer transition-colors" onclick="window.openComic('${comic.lastReadUrl}', '${comic.name.replace(/'/g, "\\'")}', '${comic.id}')">
+                        <div class="flex flex-col">
+                            <span class="text-[15px] font-bold text-[#eab308] block">${comic.lastReadChapter}</span>
+                            <span class="text-[12px] text-gray-400 font-medium">Đang đọc dở</span>
+                        </div>
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </div>
+                `;
+            }
+
+            chapListContainer.innerHTML = chapHtml;
+            window.showScreen('details');
+        };
+
+        // --- HÀM MỞ MÀN HÌNH TRÌNH ĐỌC (READER) ---
+        window.openComic = async function(url, name, comicId) {
+            const comic = myComics.find(c => c.id === comicId);
+            const type = comic ? (comic.type || 'comic') : 'comic';
+
+            if (type === 'novel') {
+                if (comicId && db) {
+                    try {
+                        const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comicId);
+                        await updateDoc(comicDoc, { lastReadUrl: url, lastReadAt: Date.now() });
+                    } catch(e) {}
+                }
+                window.showAppAlert("Bạn đang mở Truyện Chữ.\nTính năng bóc tách văn bản đang được phát triển nên tạm thời sẽ mở trực tiếp trên trình duyệt gốc nhé!");
+                window.open(url, '_blank');
+                return;
+            }
+
+            currentUrl = url;
+            if (comicId) window.currentComicId = comicId;
+
+            document.getElementById('reader-title').innerText = name;
+            document.getElementById('reader-chapter').innerText = "Đang tải...";
+            document.getElementById('bottom-chapter-label').innerText = "Đang tải..."; 
+            window.showScreen('reader');
+            
+            isControlsVisible = false;
+            window.updateControlsVisibility();
+
+            const container = document.getElementById('image-container');
+            const loader = document.getElementById('loader');
+            if(!container || !loader) return;
+            
+            container.innerHTML = '';
+            loader.classList.remove('hidden');
+            document.querySelector('.screen-content').scrollTo(0,0);
+
+            try {
+                const res = await fetch(`${API_ENDPOINT}?url=${encodeURIComponent(url)}`, {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                const data = await res.json();
+                loader.classList.add('hidden');
+
+                if (data.success) {
+                    nextChapterUrl = data.next_chapter || "";
+                    prevChapterUrl = data.prev_chapter || "";
+
+                    if (data.chapter_name && (data.chapter_name.includes('404') || data.chapter_name.toLowerCase().includes('không tìm thấy'))) {
+                        document.getElementById('reader-chapter').innerText = "Chương không tồn tại";
+                        document.getElementById('bottom-chapter-label').innerText = "Lỗi chương";
+                        container.innerHTML = `<div class="p-8 text-center mt-20"><p class="text-red-500 font-bold mb-2">CHƯƠNG NÀY BỊ LỖI HOẶC KHÔNG TỒN TẠI</p></div>`;
+                        return;
+                    }
+
+                    if (data.images && data.images.length > 0) {
+                        document.getElementById('reader-chapter').innerText = data.chapter_name;
+                        document.getElementById('bottom-chapter-label').innerText = data.chapter_name; 
+                        
+                        if (window.currentComicId && db) {
+                            try {
+                                let hasNext = false;
+                                if (data.next_chapter && data.next_chapter !== '#' && !data.next_chapter.includes('javascript:')) {
+                                    hasNext = true;
+                                }
+
+                                const comicDoc = doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', window.currentComicId);
+                                await updateDoc(comicDoc, {
+                                    lastReadUrl: url,
+                                    lastReadChapter: data.chapter_name,
+                                    lastReadAt: Date.now(),
+                                    hasNewChapter: hasNext 
+                                });
+                            } catch(e) { console.error("Lỗi cập nhật lịch sử:", e); }
+                        }
+
+                        data.images.forEach(src => {
+                            const img = document.createElement('img');
+                            img.src = src;
+                            img.className = 'w-full block min-h-[250px] bg-[#050505]';
+                            img.loading = 'lazy';
+                            img.onerror = function() { 
+                                this.onerror = null;
+                                this.src = 'https://via.placeholder.com/400x600/1c1c1e/ef4444?text=Lỗi+tải+ảnh+từ+Proxy'; 
+                                this.classList.add('opacity-70');
+                            };
+                            container.appendChild(img);
+                        });
+                    } else {
+                        document.getElementById('reader-chapter').innerText = "Không tìm thấy nội dung";
+                        document.getElementById('bottom-chapter-label').innerText = "Trống";
+                    }
+                } else {
+                    document.getElementById('reader-chapter').innerText = "Tải thất bại";
+                    document.getElementById('bottom-chapter-label').innerText = "Lỗi";
+                    container.innerHTML = `
+                        <div class="p-8 text-center mt-20 flex flex-col items-center justify-center">
+                            <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <p class="text-red-500 font-bold mb-2">LỖI LẤY DỮ LIỆU</p>
+                            <p class="text-[13px] text-gray-400 mb-6 text-center max-w-[250px]">${data.error || 'Nguồn truyện phản hồi quá chậm hoặc bị lỗi.'}</p>
+                            <button onclick="window.openComic('${url}', '${name.replace(/'/g, "\\'")}', '${comicId}')" class="px-6 py-2.5 bg-[#eab308] text-black rounded-xl font-bold active:scale-95 transition-transform shadow-md shadow-yellow-500/20">Thử lại ngay</button>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                loader.classList.add('hidden');
+                document.getElementById('reader-chapter').innerText = "Lỗi kết nối Server";
+                document.getElementById('bottom-chapter-label').innerText = "Mất kết nối";
+                container.innerHTML = `
+                    <div class="p-8 text-center mt-20 flex flex-col items-center justify-center">
+                        <svg class="w-16 h-16 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <p class="text-gray-400 font-bold mb-2">MẤT KẾT NỐI SERVER</p>
+                        <p class="text-[13px] text-gray-500 mb-6 text-center max-w-[250px]">Không thể kết nối đến máy chủ Node.js của bạn. Hãy kiểm tra lại kết nối mạng hoặc Ngrok.</p>
+                        <button onclick="window.openComic('${url}', '${name.replace(/'/g, "\\'")}', '${comicId}')" class="px-6 py-2.5 bg-gray-700 text-white rounded-xl font-bold active:scale-95 transition-transform">Thử lại ngay</button>
+                    </div>
+                `;
+            }
+        };
+
+        // --- LOGIC CHUYỂN CHƯƠNG THÔNG MINH ---
+        window.changeChapter = function(dir) {
+            let targetUrl = dir === 1 ? nextChapterUrl : prevChapterUrl;
+
+            // Nếu Backend không lấy được link (trang web không hỗ trợ cào nút tới/lui) hoặc link không hợp lệ
+            if (!targetUrl || targetUrl === '#' || targetUrl.includes('javascript:')) {
+                // TỰ ĐỘNG NHẬN DIỆN PREFIX VÀ SỐ CHƯƠNG (VÍ DỤ: .../chap-123, .../chuong-123, .../chapter-123, .../c123)
+                const regex = /(.*\/)(.*[-_]|)([0-9]+(?:\.[0-9]+)?)([^\/]*)$/i;
+                const match = currentUrl.match(regex);
+                
+                if (match) {
+                    const baseUrlPart = match[1];      // Phần đầu: http://.../
+                    const prefixPart = match[2];       // Tiền tố: chap-, chuong-, c-,...
+                    const currentNum = parseFloat(match[3]); // Số chương hiện tại: 123
+                    const suffixPart = match[4];       // Phần dư phía sau (thường là ID: /1234)
+                    
+                    const targetNum = currentNum + dir;
+                    if (targetNum < 1) {
+                        window.showAppAlert("Đây là chương đầu tiên!");
+                        return;
+                    }
+                    
+                    // TẠO URL MỚI: Giữ nguyên Prefix, tăng số và XÓA Suffix ID để nhường server tự redirect
+                    targetUrl = `${baseUrlPart}${prefixPart}${targetNum}`;
+                } else {
+                    targetUrl = null; 
+                }
+            }
+
+            if (targetUrl && targetUrl !== '#' && !targetUrl.includes('javascript:')) {
+                window.openComic(targetUrl, document.getElementById('reader-title').innerText, window.currentComicId);
+            } else {
+                window.showAppAlert("Bạn đã đọc đến chương cuối cùng hoặc định dạng link nguồn truyện này không hỗ trợ chuyển nhanh!");
+            }
+        };
+
+        window.promptJumpChapter = function(e) {
+            e.stopPropagation();
+            let currentChapNum = "";
+            if (currentUrl) {
+                const match = currentUrl.match(/(\d+(\.\d+)?)(?=\/|$|[^\d.])/g);
+                if (match) currentChapNum = match[match.length - 1]; // Lấy số cuối cùng trong URL
+            }
+            
+            const modal = document.getElementById('jump-modal');
+            const input = document.getElementById('jump-input');
+            const content = modal.querySelector('.modal-content');
+            
+            input.value = currentChapNum;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+            
+            setTimeout(() => { input.focus(); input.select(); }, 100);
+        };
+
+        window.closeJumpModal = function() {
+            const modal = document.getElementById('jump-modal');
+            const content = modal.querySelector('.modal-content');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+        };
+
+        window.confirmJumpModal = function() {
+            const targetChap = document.getElementById('jump-input').value;
+            if (targetChap !== null && targetChap.trim() !== "") {
+                const targetNum = parseFloat(targetChap);
+                if (!isNaN(targetNum) && currentUrl) {
+                    // TỰ ĐỘNG PHÂN TÍCH ĐỂ GIỮ NGUYÊN ĐỊNH DẠNG LINK
+                    const regex = /(.*\/)(.*[-_]|)([0-9]+(?:\.[0-9]+)?)([^\/]*)$/i;
+                    const match = currentUrl.match(regex);
+                    
+                    if (match) {
+                        const newUrl = `${match[1]}${match[2]}${targetNum}`;
+                        window.closeJumpModal();
+                        window.openComic(newUrl, document.getElementById('reader-title').innerText, window.currentComicId);
+                    } else {
+                        window.showAppAlert("Không thể nhận diện cấu trúc link của bộ truyện này!");
+                    }
+                } else {
+                    window.showAppAlert("Số chương không hợp lệ!");
+                }
+            }
+        };
+
+        // Khởi chạy UI
+        window.updateThemeUI();
+        window.switchType(window.currentType); 
+
+        // ==========================================
+        // 2. KHỞI TẠO FIREBASE
+        // ==========================================
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyASD5FHm6PywWsCLYOg0fiLKt6aAftDPSo",
+                authDomain: "mangahouse-29756.firebaseapp.com",
+                projectId: "mangahouse-29756",
+                storageBucket: "mangahouse-29756.firebasestorage.app",
+                messagingSenderId: "435273413666",
+                appId: "1:435273413666:web:575fe06599c58e126e067b"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            db = getFirestore(app);
+
+            const initAuth = async () => {
+                try {
+                    await signInAnonymously(auth); 
+                } catch (error) { console.error("Lỗi đăng nhập Firebase:", error); }
+            };
+
+            await initAuth();
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    const comicsRef = collection(db, 'artifacts', safeAppId, 'public', 'data', 'comics');
+                    
+                    unsubscribeComics = onSnapshot(comicsRef, (snapshot) => {
+                        myComics = [];
+                        snapshot.forEach((doc) => {
+                            myComics.push({ id: doc.id, ...doc.data() });
+                        });
+                        myComics.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                        
+                        window.switchType(window.currentType);
+
+                        if (!isUpdateChecked && myComics.length > 0) {
+                            isUpdateChecked = true;
+                            window.checkDailyUpdates();
+                        }
+
+                    }, (error) => { console.error("Lỗi đồng bộ Firebase:", error); });
+                } else {
+                    currentUser = null;
+                    if (unsubscribeComics) unsubscribeComics();
+                }
+            });
+
+        } catch (e) { console.error("Lỗi sập Firebase Init:", e); }
+    </script>
+</body>
+</html>
