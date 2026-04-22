@@ -3,17 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MangaHouse - Comic & Novel Reader</title>
+    <title>MangaHouse - Giao diện Huyền Bí & Thanh mảnh</title>
     
     <!-- Tải Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Lora', 'serif'],
+                    }
+                }
+            }
         }
     </script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Phông chữ: Philosopher (Tiêu đề), Inter (Giao diện chuẩn), Lora (Truyện chữ) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Philosopher:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
             --ios-bg-light: #f2f2f7;
@@ -31,10 +40,17 @@
             background-color: #e5e7eb;
             min-height: 100vh;
             margin: 0;
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-weight: 300;
             transition: background-color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
         }
-        body.dark { background-color: #111827; }
+        body.dark { background-color: #0a0a0c; }
+
+        .font-mystic {
+            font-family: 'Philosopher', serif;
+            font-weight: 400;
+        }
 
         .iphone-14 {
             width: 393px;
@@ -69,6 +85,7 @@
             overflow-y: auto;
             overflow-x: hidden;
             scrollbar-width: none;
+            position: relative;
         }
         .screen-content::-webkit-scrollbar { display: none; }
 
@@ -76,31 +93,21 @@
             background: var(--ios-card-light);
             border-radius: 20px;
             border: 1px solid var(--ios-border-light);
-            transition: transform 0.15s ease;
+            transition: transform 0.15s ease, background-color 0.3s ease;
         }
         .dark .comic-card { background: var(--ios-card-dark); border: 1px solid var(--ios-border-dark); }
-        .comic-card:active { transform: scale(0.97); }
-
-        .ios-btn {
-            padding: 12px;
-            border-radius: 12px;
-            font-weight: 700;
-            text-align: center;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .btn-blue { background: var(--ios-blue); color: white; border: none; }
+        .comic-card:active { transform: scale(0.98); }
 
         .glass-header {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
         }
-        .dark .glass-header { background: rgba(28, 28, 30, 0.85); }
+        .dark .glass-header { background: rgba(28, 28, 30, 0.75); }
 
         .tab-bar {
             position: absolute;
-            bottom: 20px;
+            bottom: max(20px, env(safe-area-inset-bottom, 20px));
             left: 50%;
             transform: translateX(-50%);
             width: calc(100% - 40px);
@@ -114,40 +121,42 @@
             align-items: center;
             z-index: 100;
             border: 1px solid var(--ios-border-light);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-        .dark .tab-bar { background: rgba(28, 28, 30, 0.8); border-color: var(--ios-border-dark); }
+        .dark .tab-bar { background: rgba(28, 28, 30, 0.8); border-color: var(--ios-border-dark); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); }
 
-        .nav-item { color: var(--ios-text-sub-light); transition: all 0.2s; cursor: pointer; }
+        .nav-item { color: #8e8e93; transition: all 0.2s; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .nav-item.active { color: var(--ios-blue); }
 
-        /* THEMES TRUYỆN CHỮ */
-        .novel-theme-white { background-color: #ffffff !important; color: #1a1a1a !important; }
-        .novel-theme-sepia { background-color: #f4ecd8 !important; color: #5b4636 !important; }
-        .novel-theme-dark { background-color: #121212 !important; color: #d1d1d1 !important; }
+        /* THEMES TRUYỆN CHỮ - Độ tương phản tối ưu cho mắt */
+        .novel-theme-white { background-color: #ffffff !important; color: #111111 !important; }
+        .novel-theme-sepia { background-color: #f6eed8 !important; color: #4a3b2c !important; }
+        .novel-theme-dark { background-color: #121212 !important; color: #d4d4d4 !important; }
         
-        .novel-font-serif { font-family: 'Merriweather', serif !important; }
-        .novel-font-sans { font-family: 'Nunito', sans-serif !important; }
-
         .hidden-screen { display: none !important; }
 
-        /* PROGRESS NOTIFICATION */
+        /* Ẩn thanh cuộn cho Carousel ngang */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* NOTIFICATION SYNC */
         #sync-notification {
             position: absolute;
             top: 60px;
             left: 50%;
             transform: translateX(-50%) translateY(-100px);
-            background: #007AFF;
+            background: var(--ios-blue);
             color: white;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 800;
+            font-size: 11px;
+            font-weight: 400;
             z-index: 2000;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 20px rgba(0, 122, 255, 0.3);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0, 122, 255, 0.4);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         @media (max-width: 768px) {
@@ -161,265 +170,254 @@
     <div class="iphone-14">
         <div class="dynamic-island"></div>
 
-        <!-- THÔNG BÁO TIẾN TRÌNH QUÉT -->
+        <!-- SYNC NOTIFICATION -->
         <div id="sync-notification">
-            <div class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span id="sync-text">Đang kiểm tra chương mới...</span>
+            <div class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span id="sync-text">Đang kiểm tra cập nhật...</span>
         </div>
 
         <div class="screen-content">
+            
             <!-- HOME SCREEN -->
             <div id="screen-home" class="animate-in fade-in duration-300">
                 <div class="page-header px-5 pt-[65px] flex justify-between items-end pb-2">
-                    <div>
-                        <p class="text-[12px] font-bold text-gray-500 uppercase tracking-widest">Thư viện</p>
-                        <h1 class="text-[32px] font-extrabold text-black dark:text-white leading-none">Mới nhất <span id="count-home" class="text-gray-400 font-medium text-[20px]"></span></h1>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-light text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] mb-1">Mới nhất</p>
+                        <h1 class="font-mystic text-[28px] text-black dark:text-white leading-none tracking-wide truncate">Thư viện <span id="count-home" class="text-gray-400 dark:text-gray-500 font-light text-[18px]"></span></h1>
                     </div>
-                    <div class="flex gap-2 mb-1">
-                        <button onclick="toggleSearchBar()" class="w-9 h-9 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2.5"/></svg>
+                    <div class="flex gap-2.5 mb-1 flex-shrink-0">
+                        <button onclick="window.toggleSearchBar()" class="w-8 h-8 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center active:scale-90 transition-transform">
+                            <svg class="w-3.5 h-3.5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2"/></svg>
                         </button>
-                        <button onclick="toggleTheme()" class="w-9 h-9 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center">
-                            <svg id="theme-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"></svg>
+                        <button onclick="window.toggleTheme()" class="w-8 h-8 bg-gray-200 dark:bg-white/10 rounded-full flex items-center justify-center active:scale-90 transition-transform">
+                            <svg id="theme-icon" class="w-3.5 h-3.5 text-gray-700 dark:text-yellow-500" fill="currentColor" viewBox="0 0 20 20"></svg>
                         </button>
-                        <button onclick="openAddScreen()" class="w-9 h-9 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="3"/></svg>
+                        <button onclick="window.openAddScreen()" class="w-8 h-8 bg-[#007AFF] text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2"/></svg>
                         </button>
                     </div>
                 </div>
 
+                <!-- SWITCH TYPE -->
                 <div class="px-5 mt-3">
-                    <div class="bg-gray-200 dark:bg-white/5 p-1 rounded-xl flex border dark:border-white/5">
-                        <button onclick="switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[13px] font-bold transition-all">TRUYỆN TRANH</button>
-                        <button onclick="switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[13px] font-bold transition-all">TRUYỆN CHỮ</button>
+                    <div class="bg-gray-200 dark:bg-white/5 p-1 rounded-xl flex border border-transparent dark:border-white/5">
+                        <button onclick="window.switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[12px] font-medium transition-all tracking-wide">TRUYỆN TRANH</button>
+                        <button onclick="window.switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[12px] font-light transition-all tracking-wide text-gray-500 dark:text-gray-400">TRUYỆN CHỮ</button>
                     </div>
                 </div>
 
+                <!-- SEARCH BAR -->
                 <div class="search-container px-5 overflow-hidden transition-all duration-300" style="max-height: 0; opacity: 0;">
-                    <input type="text" oninput="handleSearch(event)" placeholder="Tìm kiếm tên truyện..." class="search-input w-full mt-2 px-4 py-2.5 bg-white dark:bg-white/5 text-black dark:text-white rounded-xl text-[14px] focus:outline-none border dark:border-white/10">
+                    <input type="text" oninput="window.handleSearch(event)" placeholder="Tìm tên truyện..." class="search-input w-full mt-2 px-4 py-2.5 bg-white dark:bg-[#1c1c1e] text-black dark:text-white rounded-xl text-[13px] font-light focus:outline-none border border-transparent dark:border-white/10 placeholder-gray-400 dark:placeholder-gray-500 shadow-sm dark:shadow-none">
                 </div>
 
-                <div id="comic-list" class="px-5 space-y-4 pb-32 pt-4"></div>
+                <!-- CAROUSEL TRUYỆN ĐANG ĐỌC -->
+                <div id="recent-carousel" class="mt-6 mb-2 hidden">
+                    <div class="flex items-center justify-between px-5 mb-2">
+                        <h2 class="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em]">Tiếp tục đọc</h2>
+                    </div>
+                    <div id="carousel-track" class="flex overflow-x-auto gap-4 snap-x snap-mandatory no-scrollbar items-center py-6 h-[420px]"
+                         style="padding-left: calc(50% - 130px); padding-right: calc(50% - 130px);"
+                         onscroll="window.requestAnimationFrame(window.updateCarouselAnimation)">
+                        <!-- Code JS sẽ tự chèn thẻ truyện vào đây -->
+                    </div>
+                </div>
+
+                <!-- MAIN LIST -->
+                <h2 id="main-list-title" class="px-5 text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] mt-2 mb-3 hidden">Tất cả truyện</h2>
+                <div id="comic-list" class="px-5 space-y-4 pb-32 pt-2"></div>
             </div>
 
             <!-- FAVORITES SCREEN -->
             <div id="screen-favorites" class="hidden-screen animate-in fade-in duration-300">
                 <div class="page-header px-5 pt-[65px] flex justify-between items-end pb-2">
-                    <div>
-                        <p class="text-[12px] font-bold text-gray-500 uppercase tracking-widest">Bộ sưu tập</p>
-                        <h1 class="text-[32px] font-extrabold text-black dark:text-white leading-none">Yêu thích <span id="count-favorites" class="text-gray-400 font-medium text-[20px]"></span></h1>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-light text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] mb-1">Bộ sưu tập</p>
+                        <h1 class="font-mystic text-[28px] text-black dark:text-white leading-none tracking-wide truncate">Yêu thích <span id="count-favorites" class="text-gray-400 dark:text-gray-500 font-light text-[18px]"></span></h1>
                     </div>
                 </div>
                 <div class="px-5 mt-3">
-                    <div class="bg-gray-200 dark:bg-white/5 p-1 rounded-xl flex border dark:border-white/5">
-                        <button onclick="switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[13px] font-bold transition-all">TRUYỆN TRANH</button>
-                        <button onclick="switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[13px] font-bold transition-all">TRUYỆN CHỮ</button>
+                    <div class="bg-gray-200 dark:bg-white/5 p-1 rounded-xl flex border border-transparent dark:border-white/5">
+                        <button onclick="window.switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[12px] font-medium transition-all tracking-wide">TRUYỆN TRANH</button>
+                        <button onclick="window.switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[12px] font-light transition-all tracking-wide text-gray-500 dark:text-gray-400">TRUYỆN CHỮ</button>
                     </div>
                 </div>
-                <div id="comic-list-favorites" class="px-4 grid grid-cols-3 gap-3 pb-32 pt-4"></div>
+                <div id="comic-list-favorites" class="px-4 grid grid-cols-3 gap-4 pb-32 pt-5"></div>
             </div>
 
             <!-- HISTORY SCREEN -->
             <div id="screen-history" class="hidden-screen animate-in fade-in duration-300">
                 <div class="page-header px-5 pt-[65px] flex justify-between items-end pb-2">
-                    <div>
-                        <p class="text-[12px] font-bold text-gray-500 uppercase tracking-widest">Gần đây</p>
-                        <h1 class="text-[32px] font-extrabold text-black dark:text-white leading-none">Lịch sử <span id="count-history" class="text-gray-400 font-medium text-[20px]"></span></h1>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-light text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] mb-1">Gần đây</p>
+                        <h1 class="font-mystic text-[28px] text-black dark:text-white leading-none tracking-wide truncate">Lịch sử <span id="count-history" class="text-gray-400 dark:text-gray-500 font-light text-[18px]"></span></h1>
                     </div>
                 </div>
                 <div class="px-5 mt-3">
-                    <div class="bg-gray-200 dark:bg-white/5 p-1 rounded-xl flex border dark:border-white/5">
-                        <button onclick="switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[13px] font-bold transition-all">TRUYỆN TRANH</button>
-                        <button onclick="switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[13px] font-bold transition-all">TRUYỆN CHỮ</button>
+                    <div class="bg-gray-200 dark:bg-white/5 p-1 rounded-xl flex border border-transparent dark:border-white/5">
+                        <button onclick="window.switchType('comic')" class="type-toggle-comic flex-1 py-1.5 rounded-lg text-[12px] font-medium transition-all tracking-wide">TRUYỆN TRANH</button>
+                        <button onclick="window.switchType('novel')" class="type-toggle-novel flex-1 py-1.5 rounded-lg text-[12px] font-light transition-all tracking-wide text-gray-500 dark:text-gray-400">TRUYỆN CHỮ</button>
                     </div>
                 </div>
-                <div id="comic-list-history" class="px-4 grid grid-cols-3 gap-3 pb-32 pt-4"></div>
+                <div id="comic-list-history" class="px-4 grid grid-cols-3 gap-4 pb-32 pt-5"></div>
             </div>
 
             <!-- DETAILS SCREEN -->
             <div id="screen-details" class="hidden-screen h-full bg-black relative animate-in slide-in-from-right overflow-hidden">
                 <div class="absolute inset-0 z-0">
-                    <img id="detail-bg" src="" class="w-full h-full object-cover opacity-80 scale-105">
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/70 to-black/20 backdrop-blur-[3px]"></div>
+                    <img id="detail-bg" src="" class="w-full h-full object-cover opacity-90 scale-105">
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-black/60 to-black/10 backdrop-blur-[3px]"></div>
                 </div>
                 <div class="absolute top-0 w-full z-50 px-4 py-4 flex items-center justify-between">
-                    <button onclick="showScreen(currentTabId)" class="bg-black/30 backdrop-blur-md border border-white/10 text-white px-4 py-1.5 rounded-full text-[14px] font-bold active:scale-95">Trở lại</button>
+                    <button onclick="window.showScreen(window.currentTabId)" class="bg-black/30 backdrop-blur-md border border-white/10 text-white px-5 py-2 rounded-full text-[12px] font-light active:scale-95 transition-transform">Trở lại</button>
                     <div class="flex gap-2">
-                        <button id="btn-detail-fav" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-gray-300 active:scale-95"></button>
+                        <button id="btn-detail-fav" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center active:scale-95"></button>
                         <button id="btn-detail-edit" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-white active:scale-95">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </button>
-                        <button id="btn-detail-delete" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-red-500 active:scale-95">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg>
+                        <button id="btn-detail-delete" class="w-9 h-9 bg-black/30 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center active:scale-95 text-red-500">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="1.5"/></svg>
                         </button>
                     </div>
                 </div>
                 <div class="relative z-10 h-full overflow-y-auto px-6 pt-24 pb-20 flex flex-col items-center">
-                    <img id="detail-cover" class="w-64 h-96 object-cover rounded-2xl shadow-2xl mb-6 border border-white/10" src="">
-                    <h2 id="detail-title" class="text-[28px] font-black text-center text-white leading-tight mb-2 drop-shadow-md"></h2>
-                    <p id="detail-genre" class="text-[14px] font-medium text-gray-300 mb-8 uppercase tracking-widest drop-shadow-md"></p>
-                    <div class="flex gap-3 w-full max-w-xs mb-8">
-                        <button id="btn-read-first" class="flex-1 bg-white/10 backdrop-blur-md text-white font-bold py-3 rounded-xl border border-white/10 active:scale-95 transition-transform">Đọc từ đầu</button>
-                        <button id="btn-read-continue" class="flex-1 bg-yellow-500 text-black font-black py-3 rounded-xl active:scale-95 transition-transform shadow-md">Đọc tiếp</button>
+                    <img id="detail-cover" class="w-[270px] h-[375px] object-cover rounded-3xl shadow-2xl mb-8 border border-white/10" src="">
+                    <h2 id="detail-title" class="font-mystic text-[24px] text-center text-white leading-tight mb-2 drop-shadow-lg px-2 break-words"></h2>
+                    <p id="detail-genre" class="text-[11px] font-light text-gray-300 mb-6 uppercase tracking-[0.2em] drop-shadow-md text-center"></p>
+                    <div class="flex gap-3 w-full max-w-xs mb-10">
+                        <button id="btn-read-first" class="flex-1 bg-white/10 backdrop-blur-md text-white font-normal py-3 rounded-2xl border border-white/10 active:scale-95 transition-transform text-[13px]">Đọc từ đầu</button>
+                        <button id="btn-read-continue" class="flex-1 bg-[#eab308] text-black font-normal py-3 rounded-2xl active:scale-95 transition-transform shadow-lg shadow-yellow-500/20 text-[13px]">Đọc tiếp</button>
                     </div>
                     <div class="w-full text-left max-w-sm">
-                        <h3 class="text-[15px] font-bold text-gray-300 uppercase tracking-wider mb-3 ml-1">Tiến trình</h3>
-                        <div id="detail-chapter-list" class="bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10"></div>
+                        <h3 class="text-[11px] font-light text-gray-400 uppercase tracking-[0.15em] mb-3 ml-1">Tiến trình</h3>
+                        <div id="detail-chapter-list" class="bg-white/5 backdrop-blur-xl rounded-3xl overflow-hidden border border-white/10"></div>
                     </div>
                 </div>
             </div>
 
             <!-- NOVEL READER SCREEN -->
-            <div id="screen-novel-reader" class="hidden-screen h-full bg-white transition-all duration-300 relative flex flex-col animate-in slide-in-from-right">
-                <div class="sticky top-0 z-50 px-4 py-3 flex items-center justify-between border-b border-black/5 glass-header">
-                    <button onclick="showScreen(currentTabId)" class="w-10 h-10 rounded-full flex items-center justify-center text-blue-500 active:scale-95"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3"/></svg></button>
-                    <div class="text-center truncate flex-1 px-4">
-                        <h3 id="novel-title" class="text-[14px] font-bold truncate">Tên truyện</h3>
-                        <p id="novel-chap" class="text-[10px] text-gray-500 font-bold uppercase tracking-tighter">Đang tải...</p>
+            <div id="screen-novel-reader" class="hidden-screen absolute inset-0 z-[200] bg-white transition-all duration-300 flex flex-col animate-in slide-in-from-right">
+                <div id="novel-header" class="absolute top-0 left-0 w-full z-50 px-4 py-3 flex items-center justify-between border-b border-black/5 dark:border-white/5 glass-header transition-all duration-400" style="padding-top: max(12px, env(safe-area-inset-top)); transform: translateY(-100%); opacity: 0; pointer-events: none;">
+                    <button onclick="window.openComicDetails(window.currentComicId); event.stopPropagation();" class="w-10 h-10 rounded-full flex items-center justify-center text-[#007AFF] active:scale-90 flex-shrink-0"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="1.5"/></svg></button>
+                    <div class="text-center truncate flex-1 px-4 min-w-0">
+                        <h3 id="novel-title" class="font-mystic text-[16px] truncate text-black dark:text-white">Tên truyện</h3>
+                        <p id="novel-chap" class="text-[10px] text-gray-500 font-light uppercase tracking-widest mt-0.5">Đang tải...</p>
                     </div>
-                    <button onclick="toggleNovelSettings()" class="w-10 h-10 rounded-full flex items-center justify-center text-blue-500 active:scale-95">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-width="2"/></svg>
+                    <button onclick="window.toggleNovelSettings(); event.stopPropagation();" class="w-10 h-10 rounded-full flex items-center justify-center text-[#007AFF] active:scale-90 flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-width="1.5"/></svg>
                     </button>
                 </div>
-
-                <div id="novel-scroll" class="flex-1 overflow-y-auto px-6 pt-6 pb-20">
-                    <div id="novel-body" class="max-w-xl mx-auto space-y-5 leading-loose text-[18px]">
-                        <div class="animate-pulse space-y-4">
-                            <div class="h-4 bg-gray-200 rounded w-3/4"></div><div class="h-4 bg-gray-200 rounded"></div><div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                        </div>
-                    </div>
-                    <div class="mt-12 flex gap-3 pb-10">
-                        <button onclick="changeChapter(-1)" class="flex-1 py-4 bg-gray-100 dark:bg-white/10 rounded-xl font-bold active:scale-95">Chương trước</button>
-                        <button onclick="changeChapter(1)" class="flex-1 py-4 bg-yellow-500 text-black font-black rounded-xl active:scale-95">Chương tiếp</button>
-                    </div>
+                <div id="novel-scroll" class="flex-1 overflow-y-auto w-full px-6 py-6 cursor-pointer no-scrollbar" onclick="window.toggleReaderControls()">
+                    <div id="novel-body" class="max-w-2xl mx-auto pt-12 pb-24"></div>
                 </div>
-
-                <div id="novel-sets" class="absolute inset-x-0 bottom-0 z-50 transform translate-y-full transition-transform bg-white dark:bg-[#1c1c1e] rounded-t-3xl p-6 shadow-2xl border-t dark:border-white/5">
-                    <div class="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6" onclick="toggleNovelSettings()"></div>
-                    <div class="flex items-center justify-between mb-8 bg-gray-100 dark:bg-white/5 p-2 rounded-2xl">
-                        <button onclick="adjSize(-1)" class="w-12 h-12 text-xl font-bold active:scale-90 text-black dark:text-white">A-</button>
-                        <span id="size-lbl" class="font-black text-lg text-black dark:text-white">18px</span>
-                        <button onclick="adjSize(1)" class="w-12 h-12 text-2xl font-bold active:scale-90 text-black dark:text-white">A+</button>
+                <!-- THANH ĐIỀU HƯỚNG NOVEL: NÚT NỔI KHÔNG KHUNG VIỀN -->
+                <div id="novel-bottom-controls" class="absolute bottom-8 left-0 w-full flex items-center justify-center gap-4 px-6 z-[1001] transition-all duration-400 pointer-events-none" style="padding-bottom: env(safe-area-inset-bottom); transform: translateY(150%); opacity: 0;">
+                    <button onclick="window.changeChapter(-1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-white dark:bg-[#1c1c1e] text-black dark:text-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.15)] active:scale-90 transition-transform pointer-events-auto"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button onclick="window.promptJumpChapter(event); event.stopPropagation();" class="h-12 px-4 rounded-full bg-white dark:bg-[#1c1c1e] flex-1 max-w-[180px] shadow-[0_4px_20px_rgba(0,0,0,0.15)] active:scale-90 overflow-hidden transition-transform flex items-center justify-center pointer-events-auto"><span id="novel-bottom-chapter-label" class="text-[13px] font-medium text-black dark:text-white truncate block w-full text-center">Đang tải...</span></button>
+                    <button onclick="window.changeChapter(1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-[#eab308] text-black flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.15)] active:scale-90 transition-transform pointer-events-auto"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                </div>
+                <div id="novel-sets" class="absolute inset-x-0 bottom-0 z-[1002] transform translate-y-full transition-transform bg-white dark:bg-[#1c1c1e] rounded-t-[40px] p-8 shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t border-gray-100 dark:border-white/5">
+                    <div class="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-8" onclick="window.toggleNovelSettings()"></div>
+                    <div class="flex items-center justify-between mb-8 bg-gray-50 dark:bg-white/5 p-2 rounded-3xl border border-gray-100 dark:border-transparent">
+                        <button onclick="window.adjSize(-1)" class="w-14 h-14 text-[18px] font-light active:scale-75 text-black dark:text-white transition-transform">A-</button>
+                        <span id="size-lbl" class="font-normal text-[15px] text-black dark:text-white">18px</span>
+                        <button onclick="window.adjSize(1)" class="w-14 h-14 text-[22px] font-light active:scale-75 text-black dark:text-white transition-transform">A+</button>
                     </div>
-                    <div class="grid grid-cols-3 gap-3 mb-8">
-                        <button onclick="setNTheme('white')" class="h-12 rounded-xl border-2 border-blue-500 bg-white"></button>
-                        <button onclick="setNTheme('sepia')" class="h-12 rounded-xl bg-[#f4ecd8]"></button>
-                        <button onclick="setNTheme('dark')" class="h-12 rounded-xl bg-[#121212]"></button>
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <button onclick="window.setNTheme('white')" class="h-12 rounded-2xl border border-gray-200 bg-white shadow-sm" id="theme-white-btn"></button>
+                        <button onclick="window.setNTheme('sepia')" class="h-12 rounded-2xl bg-[#f6eed8]" id="theme-sepia-btn"></button>
+                        <button onclick="window.setNTheme('dark')" class="h-12 rounded-2xl bg-[#121212]" id="theme-dark-btn"></button>
                     </div>
-                    <div class="flex gap-3">
-                        <button onclick="setNFont('serif')" class="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-white/5 font-serif font-bold text-black dark:text-white">Có chân (Serif)</button>
-                        <button onclick="setNFont('sans')" class="flex-1 py-3 rounded-xl bg-gray-100 dark:bg-white/5 font-sans font-bold text-black dark:text-white">Không chân</button>
+                    <div class="flex gap-4">
+                        <button onclick="window.setNFont('serif')" class="flex-1 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 font-serif font-normal text-[13px] text-black dark:text-white border border-gray-100 dark:border-transparent active:scale-95">Serif</button>
+                        <button onclick="window.setNFont('sans')" class="flex-1 py-3 rounded-2xl bg-gray-50 dark:bg-white/5 font-sans font-normal text-[13px] text-black dark:text-white border border-gray-100 dark:border-transparent active:scale-95">Sans</button>
                     </div>
                 </div>
             </div>
 
             <!-- COMIC READER SCREEN -->
-            <div id="screen-reader" class="hidden-screen h-full bg-black relative">
-                <div id="reader-header" class="reader-header glass-header flex items-center justify-between" style="transform: translateY(-100%); opacity: 0; pointer-events: none;">
-                    <button onclick="showScreen(currentTabId)" class="w-8 h-8 rounded-full bg-gray-200/60 dark:bg-white/10 flex items-center justify-center text-ios-blue active:scale-95">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                    <div class="text-center truncate flex-1 px-3">
-                        <h3 id="reader-title" class="text-[14px] font-semibold text-black dark:text-white truncate">Tên truyện</h3>
-                        <p id="reader-chapter" class="text-[11px] text-[#8e8e93] font-medium mt-0.5">Đang tải...</p>
+            <div id="screen-reader" class="hidden-screen absolute inset-0 z-[200] bg-black flex flex-col animate-in slide-in-from-right">
+                <div id="reader-header" class="absolute top-0 left-0 w-full z-50 glass-header flex items-center justify-between px-4 py-3 transition-all duration-400" style="padding-top: max(12px, env(safe-area-inset-top)); transform: translateY(-100%); opacity: 0; pointer-events: none;">
+                    <button onclick="window.openComicDetails(window.currentComicId); event.stopPropagation();" class="w-8 h-8 rounded-full bg-gray-200/60 dark:bg-white/10 flex items-center justify-center text-ios-blue active:scale-95 flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <div class="text-center truncate flex-1 px-3 min-w-0">
+                        <h3 id="reader-title" class="font-mystic text-[14px] text-white truncate drop-shadow-md">Tên truyện</h3>
+                        <p id="reader-chapter" class="text-[11px] text-gray-300 font-light mt-0.5 uppercase tracking-wider drop-shadow-md">Đang tải...</p>
                     </div>
-                    <button onclick="scrollToTop()" class="w-8 h-8 rounded-full bg-gray-200/60 dark:bg-white/10 flex items-center justify-center text-ios-blue active:scale-95">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0l7 7m-7-7v18" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
+                    <button onclick="window.scrollToTop(); event.stopPropagation();" class="w-8 h-8 rounded-full bg-gray-200/60 dark:bg-white/10 flex items-center justify-center text-ios-blue active:scale-95 flex-shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 10l7-7m0 0l7 7m-7-7v18" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                 </div>
-                <div class="pb-10 min-h-screen cursor-pointer" id="reader-content" onclick="toggleReaderControls()">
+                <div class="flex-1 overflow-y-auto w-full cursor-pointer no-scrollbar bg-black" id="reader-content" onclick="window.toggleReaderControls()">
                     <div id="loader" class="flex flex-col items-center justify-center mt-32 hidden">
-                        <div class="w-10 h-10 border-4 border-gray-600 border-t-[#eab308] rounded-full animate-spin"></div>
+                        <div class="w-10 h-10 border-4 border-gray-600 border-t-yellow-500 rounded-full animate-spin"></div>
                     </div>
-                    <div id="image-container" class="bg-black flex flex-col w-full"></div>
+                    <div id="image-container" class="bg-black flex flex-col w-full min-h-screen"></div>
                 </div>
-                <div id="reader-bottom-controls" class="reader-bottom-controls flex items-center justify-center gap-3 px-4 z-[1001] transition-all duration-300" style="transform: translateY(2rem); opacity: 0; pointer-events: none;">
-                    <button onclick="changeChapter(-1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-white dark:bg-[#1c1c1e] border-2 border-gray-400 dark:border-gray-500 text-black dark:text-white flex items-center justify-center shadow-2xl active:scale-95">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
-                    <button onclick="promptJumpChapter(event);" class="h-12 px-5 rounded-full bg-white dark:bg-[#1c1c1e] border-2 border-gray-400 dark:border-gray-500 flex-1 max-w-[180px] shadow-2xl active:scale-95 overflow-hidden">
-                        <span id="bottom-chapter-label" class="text-[14px] font-bold text-black dark:text-white truncate block w-full text-center">Đang tải...</span>
-                    </button>
-                    <button onclick="changeChapter(1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-[#eab308] text-black flex items-center justify-center shadow-2xl active:scale-95 border-2 border-[#eab308]">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </button>
+                <!-- THANH ĐIỀU HƯỚNG COMIC: NÚT NỔI KHÔNG KHUNG VIỀN -->
+                <div id="reader-bottom-controls" class="absolute bottom-8 left-0 w-full flex items-center justify-center gap-4 px-6 z-[1001] transition-all duration-400 pointer-events-none" style="padding-bottom: env(safe-area-inset-bottom); transform: translateY(150%); opacity: 0;">
+                    <button onclick="window.changeChapter(-1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-black/70 backdrop-blur-md text-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] active:scale-90 transition-transform pointer-events-auto"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button onclick="window.promptJumpChapter(event); event.stopPropagation();" class="h-12 px-4 rounded-full bg-black/70 backdrop-blur-md flex-1 max-w-[180px] shadow-[0_4px_20px_rgba(0,0,0,0.4)] active:scale-90 overflow-hidden transition-transform flex items-center justify-center pointer-events-auto"><span id="bottom-chapter-label" class="text-[13px] font-medium text-white truncate block w-full text-center">Đang tải...</span></button>
+                    <button onclick="window.changeChapter(1); event.stopPropagation();" class="w-12 h-12 rounded-full bg-[#eab308] text-black flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.4)] active:scale-90 transition-transform pointer-events-auto"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
                 </div>
             </div>
 
             <!-- ADD SCREEN -->
-            <div id="screen-add" class="hidden-screen p-5 animate-in slide-in-from-bottom duration-300 h-full bg-[#f2f2f7] dark:bg-black" style="padding-top: 65px;">
+            <div id="screen-add" class="hidden-screen p-6 animate-in slide-in-from-bottom duration-300 h-full bg-[#f2f2f7] dark:bg-black" style="padding-top: 65px;">
                 <div class="flex items-center justify-between mb-8 mt-4">
-                    <button onclick="showScreen(currentTabId)" class="text-ios-blue flex items-center gap-1 font-medium text-[17px] active:opacity-70">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                        Trở lại
+                    <button onclick="window.showScreen(window.currentTabId)" class="text-ios-blue flex items-center gap-1 font-normal text-[14px] active:opacity-70 transition-opacity">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/></svg> Trở lại
                     </button>
                 </div>
-                <h2 id="screen-add-title" class="text-[34px] leading-tight font-extrabold text-black dark:text-white tracking-tight mb-6">Thêm truyện</h2>
-                <div class="space-y-4 bg-white dark:bg-[#1c1c1e] p-1 rounded-2xl border border-gray-100 dark:border-white/5">
-                    <div class="px-4 py-3 border-b border-gray-100 dark:border-white/10">
-                        <p class="text-[13px] text-gray-500 dark:text-gray-400 mb-2.5 font-bold uppercase tracking-wider">Định dạng</p>
-                        <div class="flex gap-8">
-                            <label class="flex items-center gap-2.5 text-[15px] font-semibold text-black dark:text-white cursor-pointer">
-                                <input type="radio" name="add-type" value="comic" checked class="w-4 h-4 text-ios-blue accent-blue-500"> Truyện Tranh
-                            </label>
-                            <label class="flex items-center gap-2.5 text-[15px] font-semibold text-black dark:text-white cursor-pointer">
-                                <input type="radio" name="add-type" value="novel" class="w-4 h-4 text-ios-blue accent-blue-500"> Truyện Chữ
-                            </label>
+                <h2 id="screen-add-title" class="font-mystic text-[28px] font-medium text-black dark:text-white mb-8 tracking-wide">Thêm truyện</h2>
+                <div class="space-y-4 bg-white dark:bg-[#1c1c1e] p-2 rounded-3xl border border-transparent dark:border-white/5 shadow-sm">
+                    <div class="px-5 py-4 border-b border-gray-100 dark:border-white/5">
+                        <p class="text-[11px] text-gray-400 font-light uppercase tracking-widest mb-4">Định dạng</p>
+                        <div class="flex gap-10 text-black dark:text-white font-light text-[14px]">
+                            <label class="flex items-center gap-3 cursor-pointer"><input type="radio" name="add-type" value="comic" checked class="w-4 h-4 accent-[#007AFF]"> Tranh</label>
+                            <label class="flex items-center gap-3 cursor-pointer"><input type="radio" name="add-type" value="novel" class="w-4 h-4 accent-[#007AFF]"> Chữ</label>
                         </div>
                     </div>
-                    <div class="px-4 py-1 border-b border-gray-100 dark:border-white/10">
-                        <input id="add-name" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white focus:outline-none placeholder-gray-400" placeholder="Tên truyện">
-                    </div>
-                    <div class="px-4 py-1 border-b border-gray-100 dark:border-white/10">
-                        <input id="add-url" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white focus:outline-none placeholder-gray-400" placeholder="Link chương">
-                    </div>
-                    <div class="px-4 py-1 border-b border-gray-100 dark:border-white/10">
-                        <input id="add-genre" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white focus:outline-none placeholder-gray-400" placeholder="Tác giả / Thể loại">
-                    </div>
-                    <div class="px-4 py-1">
-                        <input id="add-cover" type="text" class="w-full py-3 bg-transparent text-[16px] text-black dark:text-white focus:outline-none placeholder-gray-400" placeholder="Link ảnh bìa">
-                    </div>
+                    <input id="add-name" type="text" class="w-full px-5 py-4 bg-transparent text-[14px] font-light text-black dark:text-white focus:outline-none placeholder-gray-400 border-b border-gray-100 dark:border-white/5" placeholder="Tên truyện">
+                    <input id="add-url" type="text" class="w-full px-5 py-4 bg-transparent text-[14px] font-light text-black dark:text-white focus:outline-none placeholder-gray-400 border-b border-gray-100 dark:border-white/5" placeholder="Link chương truyện">
+                    <input id="add-genre" type="text" class="w-full px-5 py-4 bg-transparent text-[14px] font-light text-black dark:text-white focus:outline-none placeholder-gray-400 border-b border-gray-100 dark:border-white/5" placeholder="Thể loại">
+                    <input id="add-cover" type="text" class="w-full px-5 py-4 bg-transparent text-[14px] font-light text-black dark:text-white focus:outline-none placeholder-gray-400" placeholder="Link ảnh bìa">
                 </div>
-                <div class="pt-8"><button id="btn-save-comic" onclick="saveNewComic()" class="ios-btn btn-blue shadow-lg shadow-blue-500/30">Lưu vào Thư viện</button></div>
+                <button onclick="window.saveNewComic()" class="w-full py-3.5 mt-12 bg-[#007AFF] text-white rounded-2xl font-normal text-[15px] shadow-lg shadow-blue-500/30 active:scale-95 transition-transform">Lưu truyện</button>
             </div>
-
         </div>
 
+        <!-- TAB BAR -->
         <nav class="tab-bar" id="main-tab-bar">
-            <button onclick="showScreen('home')" id="tab-home" class="nav-item active"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM6 6v12h12V6H6zm3 3a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1z"/></svg></button>
-            <button onclick="showScreen('favorites')" id="tab-favorites" class="nav-item"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg></button>
-            <button onclick="showScreen('history')" id="tab-history" class="nav-item"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13a1 1 0 10-2 0v5.586l-2.707 2.707a1 1 0 001.414 1.414l3-3A1 1 0 0013 13V7z" clip-rule="evenodd"/></svg></button>
+            <button onclick="window.showScreen('home')" id="tab-home" class="nav-item active"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM6 6v12h12V6H6zm3 3a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 110 2h-4a1 1 0 01-1-1z"/></svg></button>
+            <button onclick="window.showScreen('favorites')" id="tab-favorites" class="nav-item"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg></button>
+            <button onclick="window.showScreen('history')" id="tab-history" class="nav-item"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm1-13a1 1 0 10-2 0v5.586l-2.707 2.707a1 1 0 001.414 1.414l3-3A1 1 0 0013 13V7z" clip-rule="evenodd"/></svg></button>
         </nav>
 
-        <!-- JUMP MODAL -->
-        <div id="jump-modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center opacity-0 pointer-events-none transition-all">
-            <div class="modal-content w-[80%] max-w-[320px] bg-white dark:bg-[#1c1c1e] rounded-2xl p-5 shadow-2xl">
-                <h3 class="font-bold text-center mb-2 text-black dark:text-white">Chuyển chương</h3>
-                <input id="jump-input" type="number" class="w-full bg-gray-100 dark:bg-black text-black dark:text-white rounded-xl p-3 text-center text-xl font-bold mb-5 focus:outline-none" placeholder="VD: 173">
-                <div class="flex gap-3">
-                    <button onclick="closeJumpModal()" class="flex-1 py-2.5 rounded-xl bg-gray-200 dark:bg-[#2c2c2e] font-bold text-black dark:text-white">Hủy</button>
-                    <button onclick="confirmJumpModal()" class="flex-1 py-2.5 rounded-xl bg-[#eab308] text-black font-bold">Đi</button>
+        <!-- MODALS CHỨC NĂNG -->
+        <div id="alert-modal" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-[3000] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+            <div class="modal-content w-[80%] max-w-[320px] bg-white dark:bg-[#1c1c1e] rounded-[32px] p-8 flex flex-col items-center scale-95 transition-transform shadow-2xl border border-transparent dark:border-white/10">
+                <p id="alert-msg" class="text-center font-normal mb-8 text-black dark:text-white leading-relaxed break-words w-full text-[14px]"></p>
+                <button onclick="window.closeAlert()" class="w-full py-3.5 bg-[#007AFF] text-white font-normal rounded-2xl active:scale-95 transition-transform text-[14px]">Xác nhận</button>
+            </div>
+        </div>
+
+        <div id="delete-modal" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+            <div class="modal-content w-[80%] max-w-[320px] bg-white dark:bg-[#1c1c1e] rounded-[32px] p-7 scale-95 transition-transform shadow-2xl border border-transparent dark:border-white/10">
+                <h3 class="text-[16px] font-medium text-center mb-3 text-black dark:text-white">Xóa khỏi thư viện?</h3>
+                <p class="text-[12px] text-center text-gray-500 dark:text-gray-400 mb-8 px-2 leading-relaxed font-light">Truyện này sẽ bị xóa vĩnh viễn khỏi đám mây của bạn.</p>
+                <div class="flex gap-4">
+                    <button onclick="window.closeDeleteModal()" class="flex-1 py-3 rounded-2xl bg-gray-100 dark:bg-[#2c2c2e] font-normal text-[13px] text-black dark:text-white active:scale-95 transition-transform">Hủy</button>
+                    <button onclick="window.confirmDeleteComic()" class="flex-1 py-3 rounded-2xl bg-red-500 text-white font-normal text-[13px] active:scale-95 transition-transform shadow-sm">Xóa ngay</button>
                 </div>
             </div>
         </div>
 
-        <!-- DELETE MODAL -->
-        <div id="delete-modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[2000] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
-            <div class="modal-content w-[80%] max-w-[320px] bg-white dark:bg-[#1c1c1e] rounded-2xl p-5 shadow-2xl text-black dark:text-white">
-                <h3 class="text-[17px] font-bold text-center mb-2">Xóa Truyện</h3>
-                <p class="text-[13px] text-center text-gray-500 dark:text-gray-400 mb-5">Xóa truyện này khỏi thư viện đám mây?</p>
-                <div class="flex gap-3">
-                    <button onclick="closeDeleteModal()" class="flex-1 py-2.5 rounded-xl bg-gray-200 dark:bg-[#2c2c2e] font-bold text-black dark:text-white">Hủy</button>
-                    <button onclick="confirmDeleteComic()" class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-bold">Xóa</button>
+        <div id="jump-modal" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300">
+            <div class="modal-content w-[80%] max-w-[320px] bg-white dark:bg-[#1c1c1e] rounded-[32px] p-7 text-black dark:text-white shadow-2xl border border-transparent dark:border-white/10 scale-95 transition-transform">
+                <h3 class="font-medium text-center mb-6 text-[16px]">Chuyển chương nhanh</h3>
+                <input id="jump-input" type="number" onkeydown="if(event.key === 'Enter') window.confirmJumpModal()" class="w-full bg-gray-50 dark:bg-black rounded-2xl p-4 text-center text-[18px] font-normal mb-8 focus:outline-none border border-transparent focus:border-[#007AFF] transition-colors text-black dark:text-white font-sans" placeholder="Nhập số">
+                <div class="flex gap-4">
+                    <button onclick="window.closeJumpModal()" class="flex-1 py-3 rounded-2xl bg-gray-100 dark:bg-[#2c2c2e] font-normal text-[13px] active:scale-95 transition-transform">Hủy</button>
+                    <button onclick="window.confirmJumpModal()" class="flex-1 py-3 rounded-2xl bg-[#eab308] text-black font-normal text-[13px] active:scale-95 transition-transform shadow-sm">Đi đến</button>
                 </div>
-            </div>
-        </div>
-
-        <!-- ALERT MODAL -->
-        <div id="alert-modal" class="absolute inset-0 bg-black/50 backdrop-blur-sm z-[3000] flex items-center justify-center opacity-0 pointer-events-none transition-all">
-            <div class="modal-content w-[80%] max-w-[320px] bg-white dark:bg-[#1c1c1e] rounded-3xl p-6 flex flex-col items-center">
-                <p id="alert-msg" class="text-center font-bold mb-6 text-black dark:text-white"></p>
-                <button onclick="closeAlert()" class="w-full py-3 bg-blue-500 text-white font-bold rounded-xl">Đóng</button>
             </div>
         </div>
     </div>
@@ -429,7 +427,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 1. BIẾN TOÀN CỤC
+        // --- 1. BIẾN TOÀN CỤC ---
         let API_ENDPOINT = '/api/scrape-chapter';
         if (window.location.protocol.startsWith('blob')) API_ENDPOINT = 'http://localhost:3000/api/scrape-chapter';
         
@@ -439,135 +437,227 @@
         window.currentComicId = null;
         window.currentType = localStorage.getItem('comicType') || 'comic'; 
         let editingComicId = null, comicIdToDelete = null, isControlsVisible = false, lastScrollTop = 0, searchQuery = "", isUpdateChecked = false;
+        let nSize = parseInt(localStorage.getItem('nSize')) || 18, nTheme = localStorage.getItem('nTheme') || 'white', nFont = localStorage.getItem('nFont') || 'serif';
 
-        // Novel Configs
-        let nSize = parseInt(localStorage.getItem('nSize')) || 18;
-        let nTheme = localStorage.getItem('nTheme') || 'white';
-        let nFont = localStorage.getItem('nFont') || 'serif';
-
-        // 2. CÁC HÀM XỬ LÝ HỆ THỐNG
+        // --- 2. HỆ THỐNG MODAL & UI ---
         window.showAppAlert = (msg) => {
-            const modal = document.getElementById('alert-modal');
             document.getElementById('alert-msg').innerText = msg;
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modal.querySelector('.modal-content').classList.remove('scale-95');
+            const m = document.getElementById('alert-modal');
+            m.classList.remove('opacity-0', 'pointer-events-none');
+            m.querySelector('.modal-content').classList.remove('scale-95');
         };
         window.closeAlert = () => {
-            const modal = document.getElementById('alert-modal');
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modal.querySelector('.modal-content').classList.add('scale-95');
+            const m = document.getElementById('alert-modal');
+            m.classList.add('opacity-0', 'pointer-events-none');
+            m.querySelector('.modal-content').classList.add('scale-95');
         };
-
+        window.closeDeleteModal = () => {
+            const m = document.getElementById('delete-modal');
+            m.classList.add('opacity-0', 'pointer-events-none');
+            m.querySelector('.modal-content').classList.add('scale-95');
+        };
+        window.closeJumpModal = () => {
+            const m = document.getElementById('jump-modal');
+            m.classList.add('opacity-0', 'pointer-events-none');
+            m.querySelector('.modal-content').classList.add('scale-95');
+        };
+        
+        window.toggleSearchBar = () => {
+            const c = document.querySelector('.search-container');
+            const isClosed = c.style.maxHeight === '0px' || !c.style.maxHeight;
+            c.style.maxHeight = isClosed ? '100px' : '0px';
+            c.style.opacity = isClosed ? '1' : '0';
+        };
+        
         window.toggleTheme = () => { 
             isDarkMode = !isDarkMode; 
             localStorage.setItem('theme', isDarkMode ? 'dark' : 'light'); 
-            updateThemeUI(); 
+            window.updateThemeUI(); 
         };
+        
         window.updateThemeUI = () => {
             document.body.classList.toggle('dark', isDarkMode);
             const icon = document.getElementById('theme-icon');
             if (icon) {
                 icon.innerHTML = isDarkMode 
-                    ? '<path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill="currentColor" />' 
-                    : '<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" fill="currentColor" />';
+                    ? '<path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />' 
+                    : '<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>';
             }
         };
 
-        window.toggleSearchBar = () => {
-            const container = document.querySelector('.search-container');
-            const isClosed = container.style.maxHeight === '0px' || !container.style.maxHeight;
-            container.style.maxHeight = isClosed ? '60px' : '0px';
-            container.style.opacity = isClosed ? '1' : '0';
-        };
-
-        window.switchType = (type) => {
-            window.currentType = type;
-            localStorage.setItem('comicType', type);
-            const active = "flex-1 py-1.5 rounded-lg text-[13px] font-black bg-white dark:bg-[#3a3a3c] shadow-sm text-black dark:text-white transition-all";
-            const inactive = "flex-1 py-1.5 rounded-lg text-[13px] font-bold text-gray-500 transition-all";
-            document.querySelectorAll('.type-toggle-comic').forEach(b => b.className = `type-toggle-comic ${type==='comic'?active:inactive}`);
-            document.querySelectorAll('.type-toggle-novel').forEach(b => b.className = `type-toggle-novel ${type==='novel'?active:inactive}`);
-            renderAllLists();
-        };
-
-        // --- CÔNG CỤ QUÉT CẬP NHẬT ---
+        // --- 3. QUÉT CẬP NHẬT (SYNC) ---
         window.checkDailyUpdates = async function() {
-            const now = new Date();
-            const vnTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
-            const todayStr = vnTime.getFullYear() + '-' + vnTime.getMonth() + '-' + vnTime.getDate();
-            if (localStorage.getItem('lastSyncDate') === todayStr) return; 
+            const vnNow = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
+            const todayKey = `${vnNow.getFullYear()}-${vnNow.getMonth()}-${vnNow.getDate()}`;
+            if (localStorage.getItem('lastSyncDate') === todayKey) return;
 
             const noti = document.getElementById('sync-notification');
             const syncText = document.getElementById('sync-text');
             noti.style.transform = 'translateX(-50%) translateY(0)';
 
-            let updatedCount = 0;
-            const targetComics = myComics.filter(c => c.type !== 'novel');
-
-            for (let i = 0; i < targetComics.length; i++) {
-                const comic = targetComics[i];
-                syncText.innerText = `Quét: ${i+1}/${targetComics.length} - ${comic.name.substring(0, 15)}...`;
+            let count = 0;
+            const targets = myComics.filter(c => (c.type || 'comic') === 'comic');
+            for (let i = 0; i < targets.length; i++) {
+                syncText.innerText = `Quét: ${i+1}/${targets.length}...`;
                 try {
-                    let res = await fetch(`${API_ENDPOINT}?url=${encodeURIComponent(comic.lastReadUrl || comic.url)}`);
-                    let data = await res.json();
-                    let hasNext = (data.success && data.next_chapter && data.next_chapter !== '#' && !data.next_chapter.includes('javascript:'));
-                    if (hasNext !== !!comic.hasNewChapter) {
-                        await updateDoc(doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comic.id), { hasNewChapter: hasNext });
-                        if (hasNext) updatedCount++;
+                    let targetEndpoint = API_ENDPOINT;
+                    let fetchUrl = targets[i].lastReadUrl || targets[i].url;
+                    if (fetchUrl && fetchUrl.includes('drive.google.com')) {
+                        targetEndpoint = window.location.protocol.startsWith('blob') ? 'http://localhost:3000/api/read-drive-chapter' : '/api/read-drive-chapter';
+                        fetchUrl = fetchUrl + (fetchUrl.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
                     }
-                } catch(e) { console.log(e.message); }
+                    const res = await fetch(`${targetEndpoint}?url=${encodeURIComponent(fetchUrl)}`);
+                    const d = await res.json();
+                    const hasNew = (d.success && d.next_chapter && d.next_chapter !== '#' && !d.next_chapter.includes('javascript'));
+                    if (hasNew !== !!targets[i].hasNewChapter) {
+                        await updateDoc(doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', targets[i].id), { hasNewChapter: hasNew });
+                        if (hasNew) count++;
+                    }
+                } catch(e) {}
                 await new Promise(r => setTimeout(r, 1000));
             }
-            localStorage.setItem('lastSyncDate', todayStr);
-            syncText.innerText = updatedCount > 0 ? `Hoàn tất! Có ${updatedCount} truyện mới.` : "Thư viện đã được cập nhật.";
+            localStorage.setItem('lastSyncDate', todayKey);
+            syncText.innerText = count > 0 ? `Xong! ${count} truyện có chap mới.` : "Thư viện đã cập nhật.";
             setTimeout(() => { noti.style.transform = 'translateX(-50%) translateY(-100px)'; }, 3000);
         };
 
-        // --- HÀM MỞ TRUYỆN CHI TIẾT ---
+        // --- 4. HÀM MỞ TRUYỆN CHI TIẾT ---
         window.openComic = async (url, name, id) => {
-            const comic = myComics.find(c => c.id === id);
-            const type = (comic && comic.type) || 'comic';
+            const c = myComics.find(x => x.id === id);
+            const type = (c && c.type) || 'comic';
             currentUrl = url; window.currentComicId = id;
-
+            
+            isControlsVisible = false;
+            ['reader', 'novel'].forEach(prefix => {
+                const h = document.getElementById(`${prefix}-header`), b = document.getElementById(`${prefix}-bottom-controls`);
+                if(h) { h.style.transform = 'translateY(-100%)'; h.style.opacity = '0'; h.style.pointerEvents = 'none'; }
+                if(b) { b.style.transform = 'translateY(150%)'; b.style.opacity = '0'; }
+            });
+            
             if (type === 'novel') {
                 document.getElementById('novel-title').innerText = name;
                 document.getElementById('novel-chap').innerText = "Đang tải...";
-                document.getElementById('novel-body').innerHTML = `<div class="p-10 text-center animate-pulse">Bóc tách nội dung...</div>`;
-                showScreen('novel-reader');
-                applyNovelStyles();
+                document.getElementById('novel-bottom-chapter-label').innerText = "Đang tải...";
+                document.getElementById('novel-body').innerHTML = `<div class="p-10 text-center animate-pulse text-gray-500 font-light">Đang tải văn bản...</div>`;
+                window.showScreen('novel-reader'); window.applyNovelStyles();
             } else {
                 document.getElementById('reader-title').innerText = name;
                 document.getElementById('reader-chapter').innerText = "Đang tải...";
                 document.getElementById('bottom-chapter-label').innerText = "Đang tải..."; 
                 document.getElementById('image-container').innerHTML = '';
-                showScreen('reader');
+                document.getElementById('loader').classList.remove('hidden');
+                window.showScreen('reader');
             }
-
+            
             try {
-                const res = await fetch(`${API_ENDPOINT}?url=${encodeURIComponent(url)}`);
-                if (!res.ok) throw new Error(`Server phản hồi lỗi ${res.status}`);
+                let targetEndpoint = API_ENDPOINT;
+                let fetchUrl = url;
+                if (url.includes('drive.google.com') || url.startsWith('drive://')) {
+                    targetEndpoint = window.location.protocol.startsWith('blob') ? 'http://localhost:3000/api/read-drive-chapter' : '/api/read-drive-chapter';
+                    // CHỐNG CACHE: Ép server lấy dữ liệu mới nhất từ Google Drive thay vì dùng dữ liệu cũ
+                    fetchUrl = url + (url.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+                }
+                const res = await fetch(`${targetEndpoint}?url=${encodeURIComponent(fetchUrl)}`);
                 const data = await res.json();
+                document.getElementById('loader').classList.add('hidden');
                 
                 if (data.success) {
                     nextUrl = data.next_chapter; prevUrl = data.prev_chapter;
+                    
+                    if (data.current_chapter_url) {
+                        url = data.current_chapter_url;
+                        currentUrl = data.current_chapter_url;
+                    }
+                    
                     if (type === 'novel') {
-                        document.getElementById('novel-chap').innerText = data.chapter_name;
-                        document.getElementById('novel-body').innerHTML = data.content ? data.content.map(p => `<p>${p}</p>`).join('') : '<p class="text-red-500">Trống</p>';
+                        document.getElementById('novel-chap').innerText = data.chapter_name || 'Chương';
+                        document.getElementById('novel-bottom-chapter-label').innerText = data.chapter_name || 'Chương';
+                        
+                        if (data.content && Array.isArray(data.content) && data.content.length > 0) {
+                            // THUẬT TOÁN GỘP DÒNG THÔNG MINH (ĐÃ TỐI ƯU CHO TIÊU ĐỀ)
+                            let smartContent = [];
+                            let currentParagraph = "";
+
+                            data.content.forEach((line, index) => {
+                                line = line.trim();
+                                if (!line) return;
+
+                                // Bỏ qua dòng rác chỉ có duy nhất chữ "Chương X" (Do GDocs xuất ra)
+                                if (/^Chương\s*\d+$/i.test(line) && index < 3) return;
+
+                                // Nhận diện dòng hiện tại có phải là tiêu đề chương hay không
+                                const isChapterTitleLine = /^Chương\s*\d+/i.test(line) && line.length < 150;
+
+                                if (currentParagraph === "") {
+                                    currentParagraph = line;
+                                } else {
+                                    // Gộp nối tiếp với dòng trước đó bằng một khoảng trắng
+                                    currentParagraph += " " + line;
+                                }
+
+                                // Dấu hiệu kết thúc 1 câu: Dấu chấm, hỏi chấm, chấm than, nháy kép, đóng ngoặc
+                                const endsWithPunctuation = /[.!?…"'”’\])]$/.test(line);
+
+                                // Ép buộc ngắt thành đoạn mới nếu: (1) Kết thúc câu, (2) Là Tiêu đề, (3) Hết file
+                                if (endsWithPunctuation || isChapterTitleLine || index === data.content.length - 1) {
+                                    smartContent.push(currentParagraph);
+                                    currentParagraph = "";
+                                }
+                            });
+                            if (currentParagraph) smartContent.push(currentParagraph); // Quét lại tàn dư
+
+                            let finalTitleHtml = "";
+                            let contentHtml = "";
+
+                            if (smartContent.length > 0) {
+                                // Rút đoạn đầu tiên ra làm Tiêu đề chính (Khung xanh)
+                                let extractedTitle = smartContent.shift(); 
+                                
+                                // Format lại giao diện Tiêu đề, có gạch dưới và màu chữ đồng bộ theme
+                                finalTitleHtml = `
+                                    <div class="flex flex-col items-center w-full mb-12 mt-4">
+                                        <h1 class="font-mystic text-[28px] md:text-[34px] font-bold text-center leading-snug opacity-95 pb-5 border-b border-current max-w-[90%] inline-block" style="color: inherit;">
+                                            ${extractedTitle}
+                                        </h1>
+                                    </div>
+                                `;
+                                
+                                // Render các đoạn văn còn lại với thụt lề (indent) sâu hơn và bỏ tracking giãn chữ
+                                contentHtml = smartContent.map(p => `<p class="mb-6 leading-[1.8] text-justify indent-8">${p}</p>`).join('');
+                            } else {
+                                contentHtml = '<p class="text-center py-10 font-medium text-red-400">Trống. Không có nội dung văn bản.</p>';
+                            }
+                            
+                            document.getElementById('novel-body').innerHTML = finalTitleHtml + contentHtml;
+                        } else {
+                            document.getElementById('novel-body').innerHTML = '<p class="text-center py-10 font-medium text-red-400">Trống. Không có nội dung văn bản.</p>';
+                        }
                         document.getElementById('novel-scroll').scrollTo(0,0);
                     } else {
-                        document.getElementById('reader-chapter').innerText = data.chapter_name;
-                        document.getElementById('bottom-chapter-label').innerText = data.chapter_name;
-                        document.getElementById('image-container').innerHTML = data.images.map(src => `<img src="${src}" class="w-full block bg-black" loading="lazy">`).join('');
+                        document.getElementById('reader-chapter').innerText = data.chapter_name || 'Chương';
+                        document.getElementById('bottom-chapter-label').innerText = data.chapter_name || 'Chương'; 
+                        
+                        if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+                            document.getElementById('image-container').innerHTML = data.images.map(s => `<img src="${s}" class="w-full block bg-black" loading="lazy">`).join('');
+                        } else {
+                            let msg = "Không có ảnh nào.";
+                            if (data.content && data.content.length > 0) msg += "<br><span class='text-sm text-gray-400 mt-2 block'>Phát hiện có chữ. Hãy sửa định dạng truyện thành 'Chữ'.</span>";
+                            document.getElementById('image-container').innerHTML = `<div class="flex items-center justify-center min-h-screen px-4 text-center text-white"><p>${msg}</p></div>`;
+                        }
                     }
+                    
                     if (db && id) {
                         await updateDoc(doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', id), {
                             lastReadUrl: url, lastReadChapter: data.chapter_name, lastReadAt: Date.now(),
                             hasNewChapter: (data.next_chapter && data.next_chapter !== '#' && !data.next_chapter.includes('javascript'))
                         });
                     }
-                } else { throw new Error(data.error || "Nguồn không hỗ trợ"); }
+                } else {
+                    window.showAppAlert("Tải thất bại: " + (data.error || "Nguồn không hỗ trợ"));
+                }
             } catch (e) { 
-                window.showAppAlert(`Lỗi tải chương: ${e.message}\nKiểm tra Backend hoặc nguồn truyện.`); 
+                console.error(e);
+                window.showAppAlert("Lỗi xử lý dữ liệu! Vui lòng thử lại."); 
             }
         };
 
@@ -575,114 +665,377 @@
             window.currentComicId = id;
             const c = myComics.find(x => x.id === id);
             if(!c) return;
+            
             document.getElementById('detail-bg').src = c.cover || '';
             document.getElementById('detail-cover').src = c.cover || '';
             document.getElementById('detail-title').innerText = c.name;
             document.getElementById('detail-genre').innerText = c.genre || 'Chưa cập nhật';
+            
             document.getElementById('btn-read-first').onclick = () => window.openComic(c.url, c.name, id);
             document.getElementById('btn-read-continue').onclick = () => window.openComic(c.lastReadUrl || c.url, c.name, id);
-            const favBtn = document.getElementById('btn-detail-fav');
-            favBtn.innerHTML = c.isFavorite ? `<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>` : `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-width="2"/></svg>`;
-            favBtn.onclick = (e) => window.toggleFavorite(e, c.id);
+            
+            const favB = document.getElementById('btn-detail-fav');
+            favB.innerHTML = c.isFavorite ? `<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>` : `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-width="1.5"/></svg>`;
+            favB.onclick = (e) => window.toggleFavorite(e, c.id);
+            
             document.getElementById('btn-detail-edit').onclick = (e) => window.openEditScreen(e, c.id);
-            document.getElementById('btn-detail-delete').onclick = (e) => window.deleteComic(e, c.id);
-            document.getElementById('detail-chapter-list').innerHTML = `<div class="p-4 bg-white/5 border-b border-white/10 flex justify-between active:bg-white/10" onclick="window.openComic('${c.url}', '${c.name.replace(/'/g,"\\'")}', '${c.id}')"><span class="text-white font-bold">Mốc bắt đầu</span><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2"/></svg></div>` + (c.lastReadChapter ? `<div class="p-4 bg-white/5 flex justify-between active:bg-white/10" onclick="window.openComic('${c.lastReadUrl}', '${c.name.replace(/'/g,"\\'")}', '${c.id}')"><span class="text-yellow-500 font-bold">${c.lastReadChapter}</span><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2"/></svg></div>` : '');
-            showScreen('details');
+            document.getElementById('btn-detail-delete').onclick = (e) => {
+                e.stopPropagation(); comicIdToDelete = c.id;
+                const m = document.getElementById('delete-modal');
+                m.classList.remove('opacity-0', 'pointer-events-none');
+                m.querySelector('.modal-content').classList.remove('scale-95');
+            };
+            
+            document.getElementById('detail-chapter-list').innerHTML = `
+                <div class="p-4 bg-white/5 border-b border-white/10 flex justify-between items-center active:bg-white/10 transition-colors cursor-pointer rounded-t-2xl" onclick="window.openComic('${c.url}', '${c.name.replace(/'/g,"\\'")}', '${c.id}')"><span class="text-white font-normal text-[13px]">Chương đầu</span><svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="1.5"/></svg></div>
+                ${c.lastReadChapter ? `<div class="p-4 bg-white/5 flex justify-between items-center active:bg-white/10 transition-colors cursor-pointer rounded-b-2xl" onclick="window.openComic('${c.lastReadUrl}', '${c.name.replace(/'/g,"\\'")}', '${c.id}')"><span class="text-yellow-500 font-normal text-[13px]">${c.lastReadChapter}</span><svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="1.5"/></svg></div>` : ''}
+            `;
+            window.showScreen('details');
         };
 
-        // --- CÁC HÀM KHÁC ---
-        window.saveNewComic = async () => {
-            const name = document.getElementById('add-name').value;
-            const url = document.getElementById('add-url').value;
-            const type = document.querySelector('input[name="add-type"]:checked').value;
-            if(!name || !url) return window.showAppAlert("Vui lòng nhập đủ!");
-            const data = { name, url, type, genre: document.getElementById('add-genre').value, cover: document.getElementById('add-cover').value };
-            if (editingComicId) await updateDoc(doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', editingComicId), data);
-            else { data.createdAt = Date.now(); await addDoc(collection(db, 'artifacts', safeAppId, 'public', 'data', 'comics'), data); }
-            showScreen('home');
-        };
-
-        window.toggleNovelSettings = () => {
-            const s = document.getElementById('novel-sets');
-            s.style.transform = (s.style.transform === 'translateY(0%)') ? 'translateY(100%)' : 'translateY(0%)';
-        };
-        window.adjSize = (d) => { nSize = Math.max(12, Math.min(30, nSize + (d * 2))); localStorage.setItem('nSize', nSize); applyNovelStyles(); };
-        window.setNTheme = (t) => { nTheme = t; localStorage.setItem('nTheme', t); applyNovelStyles(); };
-        window.setNFont = (f) => { nFont = f; localStorage.setItem('nFont', f); applyNovelStyles(); };
-        function applyNovelStyles() {
-            const b = document.getElementById('novel-body'), s = document.getElementById('screen-novel-reader'), l = document.getElementById('size-lbl');
-            if (l) l.innerText = nSize + 'px';
-            s.className = `h-full transition-all duration-300 relative flex flex-col novel-theme-${nTheme}`;
-            b.className = `max-w-xl mx-auto space-y-6 leading-relaxed text-justify novel-font-${nFont}`;
-            b.style.fontSize = nSize + 'px';
-        }
-
+        // --- 5. RENDER LOGIC VÀ CAROUSEL TRUYỆN ĐANG ĐỌC NATIVE SCROLL ---
         window.showScreen = (id) => {
             if (['home', 'favorites', 'history'].includes(id)) window.currentTabId = id;
             document.querySelectorAll('.screen-content > div').forEach(d => d.classList.add('hidden-screen'));
-            document.getElementById(`screen-${id}`).classList.remove('hidden-screen');
+            const s = document.getElementById(`screen-${id}`); if(s) s.classList.remove('hidden-screen');
             document.getElementById('main-tab-bar').style.display = ['home','favorites','history'].includes(id) ? 'flex' : 'none';
             ['home', 'favorites', 'history'].forEach(tab => {
-                const btn = document.getElementById(`tab-${tab}`);
-                if (btn) btn.classList.toggle('active', tab === id);
+                const b = document.getElementById(`tab-${tab}`); if(b) b.classList.toggle('active', tab === id);
             });
-            renderAllLists();
+            window.renderAllLists();
         };
 
-        function renderAllLists() {
-            const filtered = myComics.filter(c => (c.type || 'comic') === (window.currentType || 'comic'));
-            renderComicList(searchQuery ? filtered.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())) : filtered);
-            renderFavoritesList();
-            renderHistoryList();
-        }
+        window.updateCarouselAnimation = () => {
+            const track = document.getElementById('carousel-track');
+            if (!track) return;
+            
+            const center = track.scrollLeft + track.clientWidth / 2;
+            const items = track.querySelectorAll('.carousel-item');
+            
+            items.forEach(item => {
+                const itemCenter = item.offsetLeft + item.clientWidth / 2;
+                const distance = Math.abs(center - itemCenter);
+                const maxDistance = item.clientWidth + 16; 
+                
+                let progress = distance / maxDistance;
+                if (progress > 1) progress = 1;
+                
+                const scale = 1 - (progress * 0.15);
+                const opacity = 1 - (progress * 0.6);
+                
+                item.style.transform = `scale(${scale})`;
+                item.style.opacity = opacity;
+                item.style.zIndex = Math.round(100 - progress * 10);
+            });
+        };
 
-        function renderComicList(list) {
-            const container = document.getElementById('comic-list');
-            document.getElementById('count-home').innerText = `(${list.length})`;
-            container.innerHTML = list.map(c => `
-                <div class="comic-card p-3.5 flex gap-4 bg-white dark:bg-[#1c1c1e] border border-black/5 dark:border-white/5" onclick="window.openComicDetails('${c.id}')">
-                    <img src="${c.cover || 'https://via.placeholder.com/150'}" class="w-24 h-36 object-cover rounded-xl shadow-md">
-                    <div class="flex-1 py-1 relative text-black dark:text-white">
-                        <h3 class="font-black truncate">${c.name}${c.hasNewChapter ? '<span class="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded ml-2 animate-pulse">NEW</span>' : ''}</h3>
-                        <p class="text-[13px] text-gray-500 dark:text-gray-400 font-bold">${c.genre || 'Hành động'}</p>
-                        <div class="mt-8">
-                            <span class="text-[12px] text-yellow-600 font-black uppercase">${c.lastReadChapter || 'Chưa đọc'}</span>
-                            <div class="w-full h-1.5 bg-gray-200 dark:bg-white/10 rounded-full mt-1 overflow-hidden">
-                                <div class="h-full bg-yellow-500" style="width: ${c.lastReadChapter ? '60%' : '0%'}"></div>
+        window.renderCarousel = () => {
+            const track = document.getElementById('carousel-track');
+            const carousel = document.getElementById('recent-carousel');
+            const mainTitle = document.getElementById('main-list-title');
+
+            if (!searchQuery && window.currentTabId === 'home' && window.recentComics && window.recentComics.length > 0) {
+                carousel.classList.remove('hidden');
+                mainTitle.classList.remove('hidden');
+
+                track.innerHTML = window.recentComics.map((c, i) => {
+                    return `
+                        <div class="carousel-item relative flex-shrink-0 w-[260px] h-[360px] rounded-[28px] overflow-hidden snap-center shadow-2xl border border-black/5 dark:border-white/10 bg-gray-200 dark:bg-[#1c1c1e] cursor-pointer select-none origin-center transform-gpu will-change-transform"
+                             onclick="window.openComicDetails('${c.id}')">
+                            <img src="${c.cover || 'https://via.placeholder.com/300x400'}" draggable="false" class="absolute inset-0 w-full h-full object-cover pointer-events-none">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent pointer-events-none"></div>
+                            
+                            ${c.hasNewChapter ? '<span class="absolute top-4 left-4 bg-red-500 text-white text-[11px] font-bold px-2.5 py-1 rounded shadow-sm z-20 animate-pulse tracking-wider pointer-events-none">NEW</span>' : ''}
+                            
+                            <button onclick="window.toggleFavorite(event, '${c.id}')" class="absolute top-4 right-4 p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/20 active:scale-90 transition-transform z-20">
+                                <svg class="w-5 h-5 ${c.isFavorite ? 'text-red-500' : 'text-white'}" fill="${c.isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                            </button>
+
+                            <div class="absolute bottom-0 left-0 w-full p-5 flex items-end pointer-events-none">
+                                <span class="font-sans text-[66px] font-black italic text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-none z-10 opacity-95 -mb-2 -ml-1">${i + 1}</span>
+                                <div class="ml-3 pb-1 z-10 flex-1 min-w-0">
+                                    <h3 class="font-mystic text-white font-bold text-[18px] line-clamp-2 leading-snug drop-shadow-md break-words">${c.name}</h3>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            `).join('');
-        }
+                    `;
+                }).join('');
+                
+                setTimeout(() => { window.updateCarouselAnimation(); }, 50);
+            } else {
+                if(carousel) carousel.classList.add('hidden');
+                if(mainTitle) mainTitle.classList.add('hidden');
+            }
+        };
 
-        function renderFavoritesList() {
-            const container = document.getElementById('comic-list-favorites');
+        window.renderAllLists = () => {
+            const filtered = myComics.filter(c => (c.type || 'comic') === window.currentType);
+            const list = searchQuery ? filtered.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())) : filtered;
+            
+            let mainListComics = list;
+
+            if (!searchQuery && window.currentTabId === 'home') {
+                window.recentComics = filtered.filter(c => c.lastReadAt).sort((a,b) => b.lastReadAt - a.lastReadAt).slice(0, 5);
+                window.renderCarousel();
+                
+                const recentIds = window.recentComics.map(c => c.id);
+                mainListComics = list.filter(c => !recentIds.includes(c.id));
+            } else {
+                window.recentComics = [];
+                window.renderCarousel();
+            }
+            
+            document.getElementById('count-home').innerText = `(${list.length})`;
+
+            if (mainListComics.length === 0) {
+                document.getElementById('comic-list').innerHTML = `
+                    <div class="flex flex-col items-center justify-center pt-20 pb-10 opacity-70">
+                        <svg class="w-14 h-14 text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        <p class="text-[14px] font-light text-gray-600 dark:text-gray-400">Chưa có truyện nào</p>
+                    </div>`;
+            } else {
+                document.getElementById('comic-list').innerHTML = mainListComics.map(c => `
+                    <div class="comic-card p-3.5 flex gap-4 bg-white dark:bg-[#1c1c1e] border border-gray-100 dark:border-white/5 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#2c2c2e] transition-colors" onclick="window.openComicDetails('${c.id}')">
+                        <div class="relative w-[85px] h-[125px] flex-shrink-0">
+                            <img src="${c.cover || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover rounded-xl shadow-sm border border-gray-200 dark:border-white/10">
+                            <button onclick="window.toggleFavorite(event, '${c.id}')" class="absolute top-1 right-1 p-1.5 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center ${c.isFavorite ? 'text-red-500' : 'text-white'} hover:text-red-400 transition-transform active:scale-90 z-10">
+                                <svg class="w-3.5 h-3.5" fill="${c.isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                            </button>
+                        </div>
+                        <div class="flex-1 flex flex-col min-w-0 py-0.5">
+                            <div class="flex justify-between items-start gap-2">
+                                <h3 class="font-mystic font-medium text-[16px] text-black dark:text-white leading-snug line-clamp-2">${c.name}</h3>
+                                ${c.hasNewChapter ? '<span class="bg-red-500 text-white text-[8px] font-normal px-1.5 py-0.5 rounded shadow-sm shrink-0 animate-pulse">NEW</span>' : ''}
+                            </div>
+                            <p class="text-[11px] text-gray-500 dark:text-gray-400 font-light mt-1 truncate uppercase tracking-wider">${c.genre || 'Chưa phân loại'}</p>
+                            <div class="mt-auto pt-3">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <span class="text-[10px] text-[#eab308] font-normal uppercase tracking-wider truncate">${c.lastReadChapter || 'Chưa đọc'}</span>
+                                </div>
+                                <div class="w-full h-1 bg-gray-200 dark:bg-[#333] rounded-full overflow-hidden">
+                                    <div class="h-full bg-[#eab308] rounded-full" style="width: ${c.lastReadChapter ? '65%' : '0%'}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+
             const favs = myComics.filter(c => c.isFavorite && (c.type || 'comic') === window.currentType);
             document.getElementById('count-favorites').innerText = `(${favs.length})`;
-            container.innerHTML = favs.map(c => renderGridItem(c)).join('');
-        }
+            document.getElementById('comic-list-favorites').innerHTML = favs.length === 0 ? `<p class="col-span-3 text-center pt-20 text-gray-500 font-light text-[13px]">Chưa có truyện yêu thích</p>` : favs.map(c => window.renderGridItem(c)).join('');
 
-        function renderHistoryList() {
-            const container = document.getElementById('comic-list-history');
             const history = myComics.filter(c => c.lastReadAt && (c.type || 'comic') === window.currentType).sort((a,b) => b.lastReadAt - a.lastReadAt);
             document.getElementById('count-history').innerText = `(${history.length})`;
-            container.innerHTML = history.map(c => renderGridItem(c)).join('');
-        }
+            document.getElementById('comic-list-history').innerHTML = history.length === 0 ? `<p class="col-span-3 text-center pt-20 text-gray-500 font-light text-[13px]">Chưa có lịch sử đọc</p>` : history.map(c => window.renderGridItem(c)).join('');
+        };
 
-        function renderGridItem(c) {
-            return `<div class="relative flex flex-col gap-1.5 cursor-pointer" onclick="window.openComicDetails('${c.id}')">
-                <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-sm bg-gray-200 dark:bg-[#1c1c1e]">
+        window.renderGridItem = (c) => `
+            <div class="relative flex flex-col gap-1.5 cursor-pointer min-w-0 group" onclick="window.openComicDetails('${c.id}')">
+                <div class="relative w-full aspect-[2/3] rounded-2xl overflow-hidden shadow-sm bg-gray-200 dark:bg-[#1c1c1e] border border-gray-200 dark:border-white/5 transition-transform group-active:scale-95">
                     <img src="${c.cover || 'https://via.placeholder.com/200x300'}" class="w-full h-full object-cover">
-                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 p-2 pt-8"><span class="text-[11px] font-bold text-[#eab308] line-clamp-1">${c.lastReadChapter || 'Mới'}</span></div>
+                    <button onclick="window.toggleFavorite(event, '${c.id}')" class="absolute top-1.5 right-1.5 p-1.5 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center ${c.isFavorite ? 'text-red-500' : 'text-white'} hover:text-red-400 transition-transform active:scale-90 z-10">
+                        <svg class="w-3.5 h-3.5" fill="${c.isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    </button>
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-2 pt-8">
+                        <span class="text-[9px] font-light text-yellow-400 line-clamp-1 drop-shadow-md tracking-wide">${c.lastReadChapter || 'Mới'}</span>
+                    </div>
                 </div>
-                <h3 class="text-[13px] font-bold text-black dark:text-white line-clamp-2 leading-tight">${c.name}</h3>
+                <h3 class="font-mystic text-[14px] font-medium text-black dark:text-white line-clamp-2 leading-tight px-0.5 break-words group-active:opacity-70 transition-opacity">${c.name}</h3>
             </div>`;
-        }
 
-        window.scrollToTop = () => document.querySelector('.screen-content').scrollTo({top:0, behavior:'smooth'});
+        // --- 6. PHỤ TRỢ NOVEL & FIREBASE ---
+        window.applyNovelStyles = () => {
+            const b = document.getElementById('novel-body'), s = document.getElementById('screen-novel-reader'), l = document.getElementById('size-lbl');
+            if (l) l.innerText = nSize + 'px';
+            
+            // Xóa các class theme cũ thay vì gán đè toàn bộ className (gây mất class hiển thị)
+            s.classList.remove('novel-theme-white', 'novel-theme-sepia', 'novel-theme-dark');
+            s.classList.add(`novel-theme-${nTheme}`);
+            
+            // Tối ưu hóa khung văn bản: Tăng kích thước bề ngang, padding thoải mái hơn và sửa lỗi font chữ
+            b.className = `max-w-2xl mx-auto px-4 md:px-2 text-justify font-${nFont} pt-8 pb-32`;
+            b.style.fontSize = nSize + 'px';
+            
+            document.querySelectorAll('[id^="theme"]').forEach(btn => btn.classList.remove('border-2', 'border-blue-500'));
+            const activeThemeBtn = document.getElementById(`theme-${nTheme}-btn`);
+            if (activeThemeBtn) activeThemeBtn.classList.add('border-2', 'border-blue-500');
+        };
+        
+        window.toggleNovelSettings = () => {
+            const s = document.getElementById('novel-sets');
+            const isOpen = s.style.transform === 'translateY(0%)';
+            s.style.transform = isOpen ? 'translateY(100%)' : 'translateY(0%)';
+        };
+        window.adjSize = (d) => { nSize = Math.max(12, Math.min(30, nSize + (d * 2))); localStorage.setItem('nSize', nSize); window.applyNovelStyles(); };
+        window.setNTheme = (t) => { nTheme = t; localStorage.setItem('nTheme', t); window.applyNovelStyles(); };
+        window.setNFont = (f) => { nFont = f; localStorage.setItem('nFont', f); window.applyNovelStyles(); };
 
-        // INIT FIREBASE
+        window.toggleReaderControls = () => {
+            isControlsVisible = !isControlsVisible;
+            ['reader', 'novel'].forEach(prefix => {
+                const h = document.getElementById(`${prefix}-header`), b = document.getElementById(`${prefix}-bottom-controls`);
+                if(h) {
+                    h.style.transform = isControlsVisible ? 'translateY(0)' : 'translateY(-100%)';
+                    h.style.opacity = isControlsVisible ? '1' : '0'; 
+                    h.style.pointerEvents = isControlsVisible ? 'auto' : 'none';
+                }
+                if(b) {
+                    b.style.transform = isControlsVisible ? 'translateY(0)' : 'translateY(150%)'; 
+                    b.style.opacity = isControlsVisible ? '1' : '0'; 
+                }
+            });
+        };
+
+        window.toggleFavorite = async (e, id) => { 
+            e.stopPropagation(); e.preventDefault(); 
+            const c = myComics.find(x => x.id === id); 
+            await updateDoc(doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', id), { isFavorite: !c.isFavorite }); 
+            if(id === window.currentComicId && !document.getElementById('screen-details').classList.contains('hidden-screen')) {
+                const favB = document.getElementById('btn-detail-fav');
+                favB.innerHTML = !c.isFavorite ? `<svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>` : `<svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" stroke-width="1.5"/></svg>`;
+            }
+        };
+        window.confirmDeleteComic = async () => { if(comicIdToDelete) await deleteDoc(doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', comicIdToDelete)); window.closeDeleteModal(); window.showScreen('home'); };
+        
+        window.saveNewComic = async () => {
+            const name = document.getElementById('add-name').value, url = document.getElementById('add-url').value, type = document.querySelector('input[name="add-type"]:checked').value;
+            if(!name || !url) return window.showAppAlert("Vui lòng điền tên truyện và link!");
+            const data = { name, url, type, genre: document.getElementById('add-genre').value, cover: document.getElementById('add-cover').value };
+            if (editingComicId) await updateDoc(doc(db, 'artifacts', safeAppId, 'public', 'data', 'comics', editingComicId), data);
+            else { data.createdAt = Date.now(); await addDoc(collection(db, 'artifacts', safeAppId, 'public', 'data', 'comics'), data); }
+            window.showScreen('home');
+        };
+        
+        window.openAddScreen = () => { editingComicId = null; document.getElementById('screen-add-title').innerText = "Thêm truyện"; window.showScreen('add'); };
+        window.openEditScreen = (e, id) => { 
+            e.stopPropagation(); editingComicId = id; const c = myComics.find(x => x.id === id);
+            document.getElementById('add-name').value = c.name; document.getElementById('add-url').value = c.url; document.getElementById('add-genre').value = c.genre; document.getElementById('add-cover').value = c.cover;
+            document.getElementById('screen-add-title').innerText = "Sửa truyện"; window.showScreen('add');
+        };
+
+        window.switchType = (type) => { 
+            window.currentType = type; 
+            localStorage.setItem('comicType', type); 
+            const active = "flex-1 py-1.5 rounded-lg text-[12px] font-medium bg-white dark:bg-[#3a3a3c] shadow-sm text-black dark:text-white transition-all tracking-wide";
+            const inactive = "flex-1 py-1.5 rounded-lg text-[12px] font-light text-gray-500 dark:text-gray-400 transition-all tracking-wide";
+            document.querySelectorAll('.type-toggle-comic').forEach(b => b.className = `type-toggle-comic ${type==='comic'?active:inactive}`);
+            document.querySelectorAll('.type-toggle-novel').forEach(b => b.className = `type-toggle-novel ${type==='novel'?active:inactive}`);
+            window.showScreen(window.currentTabId); 
+        };
+        
+        window.scrollToTop = () => {
+            const readerScreen = document.getElementById('screen-reader');
+            const novelScreen = document.getElementById('screen-novel-reader');
+            const detailsScreen = document.getElementById('screen-details');
+
+            if (readerScreen && !readerScreen.classList.contains('hidden-screen')) {
+                document.getElementById('reader-content').scrollTo({top: 0, behavior: 'smooth'});
+            } else if (novelScreen && !novelScreen.classList.contains('hidden-screen')) {
+                document.getElementById('novel-scroll').scrollTo({top: 0, behavior: 'smooth'});
+            } else if (detailsScreen && !detailsScreen.classList.contains('hidden-screen')) {
+                const detailsScroll = detailsScreen.querySelector('.overflow-y-auto');
+                if (detailsScroll) detailsScroll.scrollTo({top: 0, behavior: 'smooth'});
+            } else {
+                document.querySelector('.screen-content').scrollTo({top: 0, behavior: 'smooth'});
+            }
+        };
+
+        window.handleSearch = (e) => { searchQuery = e.target.value.trim(); window.renderAllLists(); };
+        
+        // Thuật toán thông minh để tách số chương từ bất kỳ định dạng URL nào
+        window.extractChapterFromUrl = (url) => {
+            try {
+                const u = new URL(url);
+                const targetStr = u.pathname + u.search;
+                // Ưu tiên 1: Bắt các tiền tố phổ biến như chap, chapter, chuong, c
+                const regexExplicit = /(chap|chapter|chuong|c)([-=_]?)(\d+(?:\.\d+)?)/i;
+                const match1 = targetStr.match(regexExplicit);
+                if (match1) return match1[3];
+
+                // Ưu tiên 2: Tìm con số nằm cuối cùng của chuỗi
+                const match2 = targetStr.match(/(.*?)(\d+(?:\.\d+)?)([^\d]*)$/);
+                if (match2) return match2[2];
+            } catch(err) {}
+            return "";
+        };
+
+        // Thuật toán thông minh để thay thế số chương mới vào URL
+        window.replaceChapterInUrl = (url, newChap) => {
+            try {
+                const u = new URL(url);
+                let targetStr = u.pathname + u.search;
+                const regexExplicit = /(chap|chapter|chuong|c)([-=_]?)(\d+(?:\.\d+)?)/i;
+                
+                if (regexExplicit.test(targetStr)) {
+                    targetStr = targetStr.replace(regexExplicit, `$1$2${newChap}`);
+                } else {
+                    const match2 = targetStr.match(/(.*?)(\d+(?:\.\d+)?)([^\d]*)$/);
+                    if (match2) {
+                        targetStr = match2[1] + newChap + match2[3];
+                    } else {
+                        return null;
+                    }
+                }
+                return u.origin + targetStr + u.hash;
+            } catch(err) {
+                return null;
+            }
+        };
+
+        window.promptJumpChapter = (e) => { 
+            e.stopPropagation(); 
+            if (currentUrl && currentUrl.includes('drive.google.com')) {
+                window.showAppAlert("Nhảy chương nhanh bằng số tạm thời chưa hỗ trợ cho Google Drive. Vui lòng dùng nút chuyển chương.");
+                return;
+            }
+            const m = document.getElementById('jump-modal');
+            document.getElementById('jump-input').value = window.extractChapterFromUrl(currentUrl);
+            m.classList.remove('opacity-0', 'pointer-events-none');
+            m.querySelector('.modal-content').classList.remove('scale-95');
+            setTimeout(() => document.getElementById('jump-input').focus(), 100);
+        };
+        
+        window.confirmJumpModal = () => {
+            const val = document.getElementById('jump-input').value; if(!val) return;
+            const title = document.getElementById(window.currentType === 'novel' ? 'novel-title' : 'reader-title').innerText;
+            
+            const newUrl = window.replaceChapterInUrl(currentUrl, val);
+            if (newUrl) {
+                window.closeJumpModal(); 
+                window.openComic(newUrl, title, window.currentComicId); 
+            } else {
+                window.showAppAlert("Không thể nhận diện cấu trúc link hiện tại!");
+            }
+        };
+        
+        window.changeChapter = (dir) => {
+            let targetUrl = dir === 1 ? nextUrl : prevUrl;
+            const title = document.getElementById(window.currentType === 'novel' ? 'novel-title' : 'reader-title').innerText;
+            
+            // 1. Ưu tiên dùng nextUrl/prevUrl do Backend cào được
+            if (targetUrl && targetUrl !== '#' && !targetUrl.includes('javascript')) {
+                window.openComic(targetUrl, title, window.currentComicId);
+                return;
+            }
+
+            // 2. Nếu Backend không lấy được, dùng thuật toán dự đoán nội bộ (chỉ với web thường)
+            if (currentUrl && !currentUrl.includes('drive.google.com')) {
+                let currentChap = window.extractChapterFromUrl(currentUrl);
+                if (currentChap) {
+                    const target = parseFloat(currentChap) + dir; 
+                    if(target < 1) return window.showAppAlert("Đây là chương đầu!");
+                    let newUrl = window.replaceChapterInUrl(currentUrl, target);
+                    if (newUrl) {
+                        window.openComic(newUrl, title, window.currentComicId);
+                        return;
+                    }
+                }
+            }
+            
+            window.showAppAlert(dir === 1 ? "Bạn đã đọc đến chương mới nhất!" : "Đây là chương đầu tiên!");
+        };
+
+        // --- KHỞI TẠO FIREBASE ---
         const fbConfig = { apiKey: "AIzaSyASD5FHm6PywWsCLYOg0fiLKt6aAftDPSo", authDomain: "mangahouse-29756.firebaseapp.com", projectId: "mangahouse-29756", storageBucket: "mangahouse-29756.firebasestorage.app", messagingSenderId: "435273413666", appId: "1:435273413666:web:575fe06599c58e126e067b" };
         const app = initializeApp(fbConfig);
         const auth = getAuth(app);
@@ -694,7 +1047,7 @@
                     currentUser = u;
                     onSnapshot(collection(db, 'artifacts', safeAppId, 'public', 'data', 'comics'), s => {
                         myComics = s.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => (b.createdAt || 0) - (a.createdAt || 0));
-                        window.switchType(localStorage.getItem('comicType') || 'comic');
+                        window.renderAllLists();
                         if (!isUpdateChecked && myComics.length > 0) { isUpdateChecked = true; window.checkDailyUpdates(); }
                     });
                 }
@@ -702,6 +1055,7 @@
         });
 
         window.updateThemeUI();
+        window.switchType(window.currentType);
     </script>
 </body>
 </html>
